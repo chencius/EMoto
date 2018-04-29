@@ -4,13 +4,13 @@ import com.emoto.protocol.fields.ErrorCode;
 import com.emoto.protocol.fields.FieldDesc;
 import com.emoto.protocol.fields.Instructions;
 
-public class ServerStartChargingResp implements CmdBase, IPortBasedCmd, ISessionBasedCmd {
+public class ClientChargingFaultResp implements CmdBase, IPortBasedCmd, ISessionBasedCmd {
 	protected byte instruction;
     
 	@FieldDesc(length=8, seqnum=0x01)
 	protected long chargeId;
 	
-	@FieldDesc(length=8, seqnum=0x02)
+    @FieldDesc(length=8, seqnum=0x02)
 	protected long sessionId;
 	
 	@FieldDesc(length=1, seqnum=0x03)
@@ -18,13 +18,15 @@ public class ServerStartChargingResp implements CmdBase, IPortBasedCmd, ISession
 	
 	@FieldDesc(length=1, seqnum=0x6F)
 	protected byte errorCode;
+	
+	//following fields are not defined with length yet
 
-	public ServerStartChargingResp() {
-		
+	public ClientChargingFaultResp()
+	{
 	}
 	
-	public ServerStartChargingResp(long chargeId, long sessionId, byte chargePortId, ErrorCode errorCode) {
-		this.instruction = Instructions.SERVER_START_CHARGING.getValue();
+	public ClientChargingFaultResp(long chargeId, long sessionId, byte chargePortId, ErrorCode errorCode) {
+		this.instruction = Instructions.CLIENT_CHARGING_FAULT.getValue();
 		this.chargeId = chargeId;
 		this.sessionId = sessionId;
 		this.chargePortId = chargePortId;
@@ -47,21 +49,23 @@ public class ServerStartChargingResp implements CmdBase, IPortBasedCmd, ISession
 		return chargeId;
 	}
 	
+	@Override
 	public long getSessionId() {
 		return sessionId;
 	}
 
+	@Override
 	public byte getChargePortId() {
 		return chargePortId;
 	}
 
 	public ErrorCode getErrorCode() {
 		return ErrorCode.valueOf(errorCode);
-	}	
+	}
 	
 	@Override
 	public String toString() {
-		return String.format("command=%s, chargeId=%d, sessionId=%d, chargerPortId=%d, errorCode=%s",
+		return String.format("command=%s, chargeId=%d, sessionId=%d, chargePortId=%d, errorCode=%s",
 				this.getClass().getSimpleName(), chargeId, sessionId, chargePortId, getErrorCode());
 	}
 }

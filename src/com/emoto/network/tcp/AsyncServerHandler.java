@@ -8,16 +8,17 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.emoto.protocol.command.ClientLoginReq;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.CmdFactory;
+import com.emoto.protocol.fields.Header;
 import com.emoto.server.Server;
+import com.emoto.server.Server.HWMapping;
 import com.emoto.statemachine.ChargePoint;
-import com.emoto.statemachine.State;
 
 public class AsyncServerHandler {
 	public AsynchronousChannelGroup group;
@@ -48,7 +49,9 @@ public class AsyncServerHandler {
 			this.serverChannel = AsynchronousServerSocketChannel.open(group);
 			
 			this.serverChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-			this.serverChannel.setOption(StandardSocketOptions.SO_RCVBUF, 16*1024);
+//			this.serverChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
+//			this.serverChannel.setOption(StandardSocketOptions.SO_RCVBUF, 16*BUF_SIZE);
+//			this.serverChannel.setOption(StandardSocketOptions.SO_SNDBUF, 16*BUF_SIZE);
 			this.serverChannel.bind(new InetSocketAddress(ip, port));
 			
 			logger.log(Level.INFO, "Listening on " + ip + " : " + port);
@@ -70,10 +73,19 @@ public class AsyncServerHandler {
 	private class AcceptCompletionHandler implements CompletionHandler<AsynchronousSocketChannel, AsyncServerHandler> {
 
 		public void completed(AsynchronousSocketChannel channel, AsyncServerHandler serverHandler) {
+			logger.log(Level.INFO, "Server accept a connection from chargePoint");
 			serverHandler.serverChannel.accept(serverHandler, this);
 			ByteBuffer buffer = ByteBuffer.allocate(BUF_SIZE);
-			channel.read(buffer, buffer, new ReadCompletionHandler(channel));
-			
+			try {
+				channel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+				channel.setOption(StandardSocketOptions.TCP_NODELAY, true);
+				channel.setOption(StandardSocketOptions.SO_RCVBUF, 16*BUF_SIZE);
+				channel.setOption(StandardSocketOptions.SO_SNDBUF, 16*BUF_SIZE);
+				channel.read(buffer, buffer, new ReadCompletionHandler(channel));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		public void failed(Throwable exc, AsyncServerHandler serverHandler) {
@@ -87,7 +99,6 @@ public class AsyncServerHandler {
 		private AsynchronousSocketChannel channel;
 		
 		public ReadCompletionHandler(AsynchronousSocketChannel channel) {
-			//super();
 			if (this.channel == null) {
 				this.channel = channel;
 			}
@@ -95,29 +106,60 @@ public class AsyncServerHandler {
 
 		public void completed(Integer result, ByteBuffer buf) {
 			buf.flip();
-			CmdBase cmd = null;
+			Object commands[] = null;
 			try {
-				cmd = CmdFactory.decCommand(buf);
+				commands = CmdFactory.decCommandAll(buf, Header.CLIENT_STX);
 			} catch (IllegalArgumentException | IllegalAccessException | InstantiationException | NoSuchFieldException
 					| SecurityException e) {
 				logger.log(Level.WARNING, "Error decoding command from chargepoint");
 				return;
 			}
-			long chargeId = cmd.getChargerId();
-			ChargePoint cp;
-			if ( server.chargePoints.get(chargeId) == null) {
-				server.chargePoints.put(chargeId, cp = new ChargePoint(server));
-			} else {
-				cp = server.chargePoints.get(chargeId);
+			
+			if (commands.length == 0) {
+				logger.log(Level.WARNING, "No message can be decoded from incoming data");
+				return;
 			}
-			CmdBase[] resp = cp.execCmd(cmd);
-			if (resp != null) {
-				try {
-					doWrite(CmdFactory.encCommand(resp));
-				} catch (IllegalArgumentException | IllegalAccessException e) {
-					logger.log(Level.WARNING, "Failed to encode command");
+			
+			for (Object c : commands) {
+				CmdBase cmd = (CmdBase)c;
+				long chargeId = cmd.getChargeId();
+				logger.log(Level.INFO, "Received " + cmd);
+				ChargePoint cp;
+				if ( cmd instanceof ClientLoginReq) {
+					ClientLoginReq req = (ClientLoginReq)cmd;
+					HWMapping chargePointInfo = server.barcode2ChargePoint.get(req.getHwId());
+					if (chargePointInfo != null) {
+						server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
+						logger.log(Level.INFO, "Receive registration for chargeId {0} with {1}",
+								new Object[]{chargePointInfo.chargeId, req});
+					} else {
+						logger.log(Level.WARNING, "chargePoint registration failed with cmd " + req);
+						return;
+					}
+				} else {
+					cp = server.chargePoints.get(chargeId);
+					if (cp != null) {
+						logger.log(Level.INFO, "Retrieve existing chargePoint whose id = " + chargeId);
+					} else {
+						logger.log(Level.WARNING, "Can't find chargePoint whose chargeId = ", chargeId);
+						return;
+					}
+				}
+				CmdBase[] resp = cp.execCmd(cmd);
+				if (resp != null) {
+					try {
+						for (CmdBase cc : resp) {
+							logger.log(Level.INFO, "Send response " + cc);
+						}
+						doWrite(CmdFactory.encCommand(resp, Header.SERVER_STX));
+					} catch (IllegalArgumentException | IllegalAccessException e) {
+						logger.log(Level.WARNING, "Failed to encode or send response commands");
+					}
 				}
 			}
+			//It is important to clear here. Otherwise there will be an infinite loop
+			buf.clear();
+			channel.read(buf, buf, this);
 		}
 
 		public void failed(Throwable exc, ByteBuffer attachment) {
@@ -129,7 +171,6 @@ public class AsyncServerHandler {
 		}
 		
 		private void doWrite(ByteBuffer buf) {
-			buf.flip();
 			this.channel.write(buf, buf, new CompletionHandler<Integer, ByteBuffer>() {
 				public void completed(Integer result, ByteBuffer buf) {  
                     if (buf.hasRemaining()) {  

@@ -4,11 +4,10 @@ import com.emoto.protocol.command.CmdBase;
 import com.emoto.server.Server;
 
 public abstract class State {
-	protected long sessionId;
+	public abstract CmdBase[] execCmd(CmdBase cmd);
 	
-	public void setSessionId(long id) {
-		this.sessionId = id;
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
 	}
-	
-	public CmdBase[] execCmd(CmdBase cmd, Server server);
 }

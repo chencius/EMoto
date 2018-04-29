@@ -1,24 +1,26 @@
 package com.emoto.protocol.command;
 
+import com.emoto.protocol.fields.ErrorCode;
 import com.emoto.protocol.fields.FieldDesc;
 import com.emoto.protocol.fields.Instructions;
 
-public class ClientEmergentButtonPressReq implements CmdBase {
+public class ClientIdleStatusResp implements CmdBase {
 	protected byte instruction;
     
 	@FieldDesc(length=8, seqnum=0x01)
 	protected long chargeId;
 	
-	@FieldDesc(length=8, seqnum=0x7F)
-	protected String signature;
+	@FieldDesc(length=1, seqnum=0x6f)
+	protected byte errorCode;
 
-	public ClientEmergentButtonPressReq() {
+	public ClientIdleStatusResp()
+	{
 	}
 	
-	public ClientEmergentButtonPressReq(long chargeId, String signature) {
-		this.instruction = Instructions.CLIENT_EMERGENT_BUTTON_PRESSED.getValue();
+	public ClientIdleStatusResp(long chargeId, ErrorCode errorCode) {
+		this.instruction = Instructions.CLIENT_IDLE_STATUS.getValue();
 		this.chargeId = chargeId;
-		this.signature = signature;
+		this.errorCode = errorCode.getValue();
 	}
 
 	@Override
@@ -37,13 +39,13 @@ public class ClientEmergentButtonPressReq implements CmdBase {
 		return chargeId;
 	}
 	
-	public String getSignature() {
-		return signature;
+	public ErrorCode getErrorCode() {
+		return ErrorCode.valueOf(errorCode);
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("command=%s, chargeId=%d,signature=%s",
-				this.getClass().getSimpleName(), chargeId, signature);
+		return String.format("command=%s, chargeId=%d, errorCode=%s",
+				this.getClass().getSimpleName(), chargeId, getErrorCode());
 	}
 }

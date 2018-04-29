@@ -10,7 +10,7 @@ public enum ErrorCode {
 	CHARGER_RUNNING(6),
 	CHARGER_NOT_RUNNING(7),
 	DUP_CMD(8),
-	INVALID(9);
+	INVALID(255);
 	
 	private final int m_value;
 	private ErrorCode(int value) {

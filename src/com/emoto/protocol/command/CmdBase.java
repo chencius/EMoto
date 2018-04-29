@@ -1,24 +1,13 @@
 package com.emoto.protocol.command;
 
-import com.emoto.protocol.fields.FieldDesc;
 import com.emoto.protocol.fields.Instructions;
 
-public abstract class CmdBase {
-    protected byte instruction;
+public interface CmdBase {
     
-    @FieldDesc(length=8, seqnum=0x01)
-	protected long chargerId;
+	public Instructions getInstruction();
 	
-	public byte getInstruction() {
-		return instruction;
-	}
+	public void setInstruction(byte instruction);
 	
-	public long getChargerId() {
-		return chargerId;
-	}
+	public long getChargeId();
 	
-	public CmdBase(Instructions instruction, long chargeId) {
-		this.instruction = (byte)(instruction.getValue());
-		this.chargerId = chargeId;
-	}
 }

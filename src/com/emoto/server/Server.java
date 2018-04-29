@@ -3,34 +3,46 @@ package com.emoto.server;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.emoto.statemachine.ChargePoint;
-import com.emoto.statemachine.State;
 
 import com.emoto.network.tcp.TcpServer;
 
-public class Server {
+public class Server implements Runnable {
 	private static final String systemVariable = "CONFIG_FILE";
 	private static Logger logger = Logger.getLogger(Server.class.getName());
 	private Properties prop;
-	public Map<Long, ChargePoint> chargePoints = new HashMap<>();
-	public long sessionId = 0;
+	public Map<Long, ChargePoint> chargePoints = new ConcurrentHashMap<>();
+	public Map<String, HWMapping> barcode2ChargePoint = new ConcurrentHashMap<>();
+	public AtomicLong sessionId = new AtomicLong(0);
+	public AtomicLong chargePointId = new AtomicLong(0);
+	private ServerControl ctrl;
 	
 	public static void main(String argv[]) {
 		Server server = new Server();
-		server.init();
+		server.run();
 	}
 	
-	private void init() {
+	public void run() {
 		prop = new Properties();
 		if (!loadConfig()) {
 			return;
 		};
+		
+		//this is a test section
+		String barcodeId = prop.getProperty("barcodeId").toString();
+		String hwId = prop.getProperty("hwId").toString();
+		HWMapping entry = new HWMapping();
+		entry.barcodeId = barcodeId;
+		entry.chargeId = chargePointId.incrementAndGet();
+		barcode2ChargePoint.put(hwId, entry);
+		//chargePoints.put(entry.chargeId, new ChargePoint(this, null));
 		
 		String ip = prop.getProperty(Prop.SERVER_IP.toString());
 		int port = Integer.valueOf(prop.getProperty(Prop.SERVER_PORT.toString()));
@@ -43,7 +55,9 @@ public class Server {
 	}
 	
 	private boolean loadConfig()  {
-		String cfgFile = System.getProperty(systemVariable);
+		//String cfgFile = System.getProperty(systemVariable);
+		//String cfgFile = "/Users/chencius/personal/Workspace/Eclipsej2ee/EMoto/config.xml";
+		String cfgFile = "/home/chargeserver/config/EMoto.cfg";
 		if (cfgFile == null) {
 			logger.log(Level.WARNING, "System config file " + systemVariable + " is not defined");
 			return false;
@@ -97,5 +111,10 @@ public class Server {
 				return null;
 			}
 		}
+	}
+	
+	public class HWMapping {
+		public String barcodeId;
+		public long chargeId;
 	}
 }

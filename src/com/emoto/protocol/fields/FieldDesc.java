@@ -8,6 +8,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface FieldDesc {
-	int length();
-	int seqnum();
+	byte length();
+	byte seqnum();
+	boolean checkValidity() default false;
 }

@@ -6,7 +6,7 @@ public enum ChargeSource {
 	CARD_CHARGING(2),
 	PASSWD_CHARGING(3),
 	PLUG_AND_CHARGING(4),
-	INVALID(5);
+	INVALID(255);
 	
 	private int m_value;
 	
@@ -14,8 +14,8 @@ public enum ChargeSource {
 		this.m_value = value;
 	}
 	
-	public int getValue() {
-		return this.m_value;
+	public byte getValue() {
+		return (byte)m_value;
 	}
 	
 	public static ChargeSource valueOf(int value) {

@@ -3,33 +3,33 @@ package com.emoto.protocol.command;
 import com.emoto.protocol.fields.FieldDesc;
 import com.emoto.protocol.fields.Instructions;
 
-public class ServerStopChargingReq implements CmdBase, ISessionBasedCmd {
+public class ClientBikeDisconnectedReq implements CmdBase, IPortBasedCmd {
 	protected byte instruction;
     
 	@FieldDesc(length=8, seqnum=0x01)
 	protected long chargeId;
 	
-	@FieldDesc(length=8, seqnum=0x02)
-	protected long sessionId;
-	
-	@FieldDesc(length=1, seqnum=0x03)
+	@FieldDesc(length=1, seqnum=0x02)
 	protected byte chargePortId;
+	
+	@FieldDesc(length=4, seqnum=0x03)
+	protected int localId;
 	
 	@FieldDesc(length=8, seqnum=0x7F)
 	protected String signature;
 
-	public ServerStopChargingReq() {
-		
+	public ClientBikeDisconnectedReq()
+	{
 	}
 	
-	public ServerStopChargingReq(long chargeId, long sessionId, byte chargePortId, String signature) {
-		this.instruction = Instructions.SERVER_STOP_CHARGING.getValue();
+	public ClientBikeDisconnectedReq(long chargeId, byte chargePortId, int localId, String signature) {
+		this.instruction = Instructions.CLIENT_BIKE_DISCONNECTED.getValue();
 		this.chargeId = chargeId;
-		this.sessionId = sessionId;
 		this.chargePortId = chargePortId;
+		this.localId = localId;
 		this.signature = signature;
 	}
-
+	
 	@Override
 	public Instructions getInstruction() {
 		return Instructions.valueOf(instruction);
@@ -46,12 +46,13 @@ public class ServerStopChargingReq implements CmdBase, ISessionBasedCmd {
 		return chargeId;
 	}
 	
-	public long getSessionId() {
-		return sessionId;
-	}
-
+	@Override
 	public byte getChargePortId() {
 		return chargePortId;
+	}
+
+	public int getLocalId() {
+		return localId;
 	}
 
 	public String getSignature() {
@@ -60,7 +61,7 @@ public class ServerStopChargingReq implements CmdBase, ISessionBasedCmd {
 	
 	@Override
 	public String toString() {
-		return String.format("command=%s, chargeId=%d, sessionId=%d, chargerPortId=%d, signature=%s",
-				this.getClass().getSimpleName(), chargeId, sessionId, chargePortId, signature);
+		return String.format("command=%s, chargeId=%d, chargePortId=%d, localId=%d, signature=%s",
+				this.getClass().getSimpleName(), chargeId, chargePortId, localId, signature);
 	}
 }

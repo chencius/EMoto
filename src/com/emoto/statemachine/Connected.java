@@ -3,10 +3,14 @@ package com.emoto.statemachine;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.emoto.protocol.command.ClientBikeDisconnectedReq;
+import com.emoto.protocol.command.ClientBikeDisconnectedResp;
+import com.emoto.protocol.command.ClientChargingFaultReq;
+import com.emoto.protocol.command.ClientConnectSucceedReq;
+import com.emoto.protocol.command.ClientConnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStartChargingResp;
 import com.emoto.protocol.fields.ErrorCode;
-import com.emoto.protocol.fields.Instructions;
 import com.emoto.server.Server;
 
 public class Connected extends State {
@@ -18,24 +22,63 @@ public class Connected extends State {
 	}
 	
 	@Override
-	public CmdBase[] execCmd(CmdBase cmd, Server server) {
-		switch(Instructions.valueOf(cmd.getInstruction())) {
-		case SERVER_START_CHARGING_REQ:
+	public CmdBase[] execCmd(CmdBase cmd) {
+		switch(cmd.getInstruction()) {
+		case SERVER_START_CHARGING:
+		{
 			ServerStartChargingResp resp = (ServerStartChargingResp)cmd;
-			if (resp.getSessionId() == sessionId ) {
-				if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED.getValue())
+			if (resp.getSessionId() == cp.getSessionId() ) {
+				if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED)
 				{
-					cp.readyToChargeState.setSessionId(sessionId);
-					cp.setState(cp.readyToChargeState);
+					//wait for chargepoint to charge bike
 				} else {
-					logger.log(Level.WARNING, "Get status " + resp.getErrorCode() + " with CP state = Connected");
+					logger.log(Level.WARNING, "Get status " + resp.getErrorCode() + " under state " + this);
 				}
 			} else {
-				logger.log(Level.WARNING, "Current sessionId = " + sessionId + ".But received sessionId = " + resp.getSessionId());
+				logger.log(Level.WARNING, "Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + resp.getSessionId());
 			}
 			return null;
+		}
+		case CLIENT_CHARGING_STARTED:
+		{
+			ClientConnectSucceedReq req = (ClientConnectSucceedReq)cmd;
+			
+			CmdBase[] resp = null;
+			if (req.getSessionId() == cp.getSessionId()) {
+				resp = new CmdBase[1];
+				resp[0] = new ClientConnectSucceedResp(
+						req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
+				logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.chargingState});
+				cp.setState(cp.chargingState);
+			} else {
+				logger.log(Level.WARNING, "Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + req.getSessionId());
+			}
+			return resp;
+		}
+		case CLIENT_CHARGING_FAULT:
+		{
+			ClientChargingFaultReq req = (ClientChargingFaultReq)cmd;
+			//suppose to return message to CP. But what errorCode to assign??
+			return null;
+		}
+		case CLIENT_BIKE_DISCONNECTED:
+		{
+			ClientBikeDisconnectedReq req = (ClientBikeDisconnectedReq)cmd;
+			
+			CmdBase[] resp = null;
+			if (req.getLocalId() == cp.getLocalId()) {
+				resp = new CmdBase[1];
+				resp[0] = new ClientBikeDisconnectedResp(
+						req.getChargeId(), req.getChargePortId(), req.getLocalId(), ErrorCode.ACT_SUCCEDED);
+				logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.onlineState});
+				cp.setState(cp.onlineState);
+			} else {
+				logger.log(Level.WARNING, "Current localId = " + cp.getLocalId() + ". But received localId = " + req.getLocalId());
+			}
+			return resp;
+		}
 		default:
-			logger.log(Level.WARNING, "Invalid action " + cmd.getInstruction() + " with CP state = Connected");
+			logger.log(Level.WARNING, "Failed to execute command {0} under state {1}", new Object[]{cmd, this});
 			return null;
 		}
 	}
