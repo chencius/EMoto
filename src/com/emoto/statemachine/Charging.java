@@ -10,7 +10,6 @@ import com.emoto.protocol.command.ClientDisconnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStopChargingResp;
 import com.emoto.protocol.fields.ErrorCode;
-import com.emoto.server.Server;
 
 public class Charging extends State {
 	private ChargePort cp;
@@ -53,7 +52,7 @@ public class Charging extends State {
 			return null;
 		}
 		default:
-			logger.log(Level.WARNING, "Failed to execute command {0} under state {1}", new Object[]{cmd, this});
+			logger.log(Level.WARNING, "Failed to execute {0} under state {1}", new Object[]{cmd, this});
 			return null;
 		}
 	}

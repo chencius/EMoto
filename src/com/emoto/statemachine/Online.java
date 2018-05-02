@@ -1,7 +1,5 @@
 package com.emoto.statemachine;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +35,7 @@ public class Online extends State {
 		}
 		default:
 		{
-			logger.log(Level.WARNING, "Failed to execute command {0} under state {1}", new Object[]{cmd, this});
+			logger.log(Level.WARNING, "Failed to execute {0} under state {1}", new Object[]{cmd, this});
 			return null;
 		}
 		}

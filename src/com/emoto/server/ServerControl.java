@@ -25,7 +25,7 @@ public class ServerControl {
 
 	private void sendCmd(CmdBase cmd) throws IllegalArgumentException, IllegalAccessException {
 		long chargeId = cmd.getChargeId();
-		logger.log(Level.INFO, "Server send command: " + cmd);
+		logger.log(Level.INFO, "Server send " + cmd);
 		ChargePoint cp = server.chargePoints.get(chargeId);
 		if (cp == null) {
 			logger.log(Level.WARNING, "No chargePoint registered for chargeId " + chargeId);
@@ -44,7 +44,7 @@ public class ServerControl {
 		channel.write(buf, buf, new CompletionHandler<Integer, ByteBuffer>() {
 			public void completed(Integer result, ByteBuffer buf) {
                 if (buf.hasRemaining()) {
-                	logger.log(Level.WARNING, "Command is not fulled sent out!");
+                	logger.log(Level.WARNING, "Command is not fulled sent out. Send the remaining command!");
                 	channel.write(buf, buf, this);  
                 }  
             }  

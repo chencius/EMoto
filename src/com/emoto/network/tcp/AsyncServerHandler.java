@@ -19,6 +19,7 @@ import com.emoto.protocol.fields.Header;
 import com.emoto.server.Server;
 import com.emoto.server.Server.HWMapping;
 import com.emoto.statemachine.ChargePoint;
+import com.emoto.statemachine.ChargePort;
 
 public class AsyncServerHandler {
 	public AsynchronousChannelGroup group;
@@ -49,9 +50,6 @@ public class AsyncServerHandler {
 			this.serverChannel = AsynchronousServerSocketChannel.open(group);
 			
 			this.serverChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
-//			this.serverChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-//			this.serverChannel.setOption(StandardSocketOptions.SO_RCVBUF, 16*BUF_SIZE);
-//			this.serverChannel.setOption(StandardSocketOptions.SO_SNDBUF, 16*BUF_SIZE);
 			this.serverChannel.bind(new InetSocketAddress(ip, port));
 			
 			logger.log(Level.INFO, "Listening on " + ip + " : " + port);
@@ -111,7 +109,7 @@ public class AsyncServerHandler {
 				commands = CmdFactory.decCommandAll(buf, Header.CLIENT_STX);
 			} catch (IllegalArgumentException | IllegalAccessException | InstantiationException | NoSuchFieldException
 					| SecurityException e) {
-				logger.log(Level.WARNING, "Error decoding command from chargepoint");
+				logger.log(Level.WARNING, "Error decoding command from chargeＰoint");
 				return;
 			}
 			
@@ -123,23 +121,40 @@ public class AsyncServerHandler {
 			for (Object c : commands) {
 				CmdBase cmd = (CmdBase)c;
 				long chargeId = cmd.getChargeId();
-				logger.log(Level.INFO, "Received " + cmd);
+				logger.log(Level.INFO, "About to process " + cmd);
 				ChargePoint cp;
 				if ( cmd instanceof ClientLoginReq) {
 					ClientLoginReq req = (ClientLoginReq)cmd;
-					HWMapping chargePointInfo = server.barcode2ChargePoint.get(req.getHwId());
+					HWMapping chargePointInfo = server.hwId2ChargePoint.get(req.getHwId());
 					if (chargePointInfo != null) {
-						server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
-						logger.log(Level.INFO, "Receive registration for chargeId {0} with {1}",
+						cp = server.chargePoints.get(chargePointInfo.chargeId);
+						if (cp == null) {
+							server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
+							logger.log(Level.INFO, "Receive registration for chargeId {0} with {1}",
 								new Object[]{chargePointInfo.chargeId, req});
+						} else {
+							boolean allInactive = true;
+							ChargePort[] ports = cp.getPorts();
+							for (int i = 0; i<cp.PORT_NUM; i++) {
+								if (ports[i].getActive() == true) {
+									allInactive = false;
+									break;
+								}
+							}
+							if (allInactive != true) {
+								logger.log(Level.WARNING, "Receive {0} when ports on chargeId {1} are not all inactive",
+										new Object[]{req, chargeId});
+								return;
+							}
+						}
 					} else {
-						logger.log(Level.WARNING, "chargePoint registration failed with cmd " + req);
+						logger.log(Level.WARNING, "chargePoint loginReq failed with " + req);
 						return;
 					}
 				} else {
 					cp = server.chargePoints.get(chargeId);
 					if (cp != null) {
-						logger.log(Level.INFO, "Retrieve existing chargePoint whose id = " + chargeId);
+						logger.log(Level.INFO, "Retrieve existing chargePoint whose chargeId = " + chargeId);
 					} else {
 						logger.log(Level.WARNING, "Can't find chargePoint whose chargeId = ", chargeId);
 						return;

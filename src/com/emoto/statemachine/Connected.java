@@ -78,7 +78,7 @@ public class Connected extends State {
 			return resp;
 		}
 		default:
-			logger.log(Level.WARNING, "Failed to execute command {0} under state {1}", new Object[]{cmd, this});
+			logger.log(Level.WARNING, "Failed to execute {0} under state {1}", new Object[]{cmd, this});
 			return null;
 		}
 	}

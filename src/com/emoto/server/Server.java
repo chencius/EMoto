@@ -19,10 +19,9 @@ public class Server implements Runnable {
 	private static Logger logger = Logger.getLogger(Server.class.getName());
 	private Properties prop;
 	public Map<Long, ChargePoint> chargePoints = new ConcurrentHashMap<>();
-	public Map<String, HWMapping> barcode2ChargePoint = new ConcurrentHashMap<>();
+	public Map<String, HWMapping> hwId2ChargePoint = new ConcurrentHashMap<>();
 	public AtomicLong sessionId = new AtomicLong(0);
 	public AtomicLong chargePointId = new AtomicLong(0);
-	private ServerControl ctrl;
 	
 	public static void main(String argv[]) {
 		Server server = new Server();
@@ -41,7 +40,7 @@ public class Server implements Runnable {
 		HWMapping entry = new HWMapping();
 		entry.barcodeId = barcodeId;
 		entry.chargeId = chargePointId.incrementAndGet();
-		barcode2ChargePoint.put(hwId, entry);
+		hwId2ChargePoint.put(hwId, entry);
 		//chargePoints.put(entry.chargeId, new ChargePoint(this, null));
 		
 		String ip = prop.getProperty(Prop.SERVER_IP.toString());

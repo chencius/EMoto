@@ -3,6 +3,7 @@ package com.emoto.server;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.emoto.protocol.command.ClientBikeConnectedReq;
@@ -24,10 +25,12 @@ import com.emoto.protocol.fields.Header;
 import com.emoto.protocol.fields.Instructions;
 
 public class Client {
+	private static AsynchronousSocketChannel client;
+	
 	public static void main(String args[]) throws Exception {
-		AsynchronousSocketChannel client = AsynchronousSocketChannel.open();
-		//InetSocketAddress address = new InetSocketAddress("39.108.6.246", 32111);
-		InetSocketAddress address = new InetSocketAddress("127.0.0.1", 5000);
+		client = AsynchronousSocketChannel.open();
+		InetSocketAddress address = new InetSocketAddress("39.108.6.246", 32111);
+		//InetSocketAddress address = new InetSocketAddress("127.0.0.1", 5000);
 		
 		Future<Void> future = client.connect(address);
 		future.get();
@@ -40,28 +43,16 @@ public class Client {
 		ByteBuffer buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
 		
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		Object[] objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		readAndPrintMsg(buffer);
 		
 		ClientBikeConnectedReq clientBikeConnectedReq = new ClientBikeConnectedReq(1, (byte)1, 1, "abcdefgh");
 		cmd[0] = clientBikeConnectedReq;
 		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
 		
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();		
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
-		CmdBase c = (CmdBase)(objs[0]);
-		System.out.println("Received command: " + c);
+		readAndPrintMsg(buffer);
 		
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();		
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
-		c = (CmdBase)(objs[0]);
+		readAndPrintMsg(buffer);
 		
 		CmdBase[] comm = new CmdBase[2];
 		
@@ -146,5 +137,18 @@ public class Client {
 		client.read(buffer).get();
 		buffer.flip();
 		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+	}
+	
+	private static Object[] readAndPrintMsg(ByteBuffer buffer) throws InterruptedException, ExecutionException, IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
+		buffer.clear();
+		client.read(buffer).get();
+		buffer.flip();
+		
+		Object[] obj = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		for (Object o : obj) {
+			CmdBase cmd = (CmdBase)o;
+			System.out.println("Receive " + cmd);
+		}
+		return obj;
 	}
 }

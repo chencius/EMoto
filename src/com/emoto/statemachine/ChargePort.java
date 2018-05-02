@@ -21,23 +21,30 @@ public class ChargePort {
 	private long sessionId;
 	private int localId;
 	
-	//private Timer timer;
-	private final int SECONDS = 700;
-	//private TimerTask timerTask;
+	private long chargeId;
+	private int portId;
+	
+	private Timer timer;
+	private final int SECONDS = 70;
+	private TimerTask timerTask;
+	
+	private boolean active;
 	
 	private static Logger logger = Logger.getLogger(ChargePort.class.getName());
 	
-	public ChargePort(Server server) {
+	public ChargePort(Server server, long chargeId, int portId) {
 		this.server = server;
 		this.onlineState = new Online(this);
 		this.connectedState = new Connected(this);
 		this.chargingState = new Charging(this);
-		this.state = this.onlineState;
+		this.state = null;
+		this.active = true;
 		
-		/*
+		this.chargeId = chargeId;
+		this.portId = portId;
+		
 		this.timer = new Timer();
 		this.timerTask = new ChargePointTimerTask();
-		*/
 	}
 
 	public Server getServer() {
@@ -53,25 +60,43 @@ public class ChargePort {
 	}
 	
 	public CmdBase[] execCmd(CmdBase cmd) {
-		logger.log(Level.INFO, "Execute command {0} under current state of {1}", new Object[]{cmd, this});
+		logger.log(Level.INFO, "Execute {0} under state of {1}", new Object[]{cmd, this});
+		
+		if (!getActive()) {
+			logger.log(Level.WARNING, "Receive {0} while port is inActive", cmd);
+			return null;
+		}
 		
 		switch(cmd.getInstruction()) {
 		case CLIENT_IDLE_STATUS:
 		{
 			ClientIdleStatusReq req = (ClientIdleStatusReq)cmd;
-			//if (req.getChargeId() == this.chargeId && 
-			if (server.chargePoints.containsKey(req.getChargeId())) {
+			if (state != this.onlineState) {
+				logger.log(Level.WARNING, "Receive {0} but chargeId {1} portId {2} is not idle",
+						new Object[]{req, req.getChargeId(), req.getChargePortId()});
+				return null;
+			}
+			
+			
+			if (req.getChargeId() == this.chargeId &&
+				req.getChargePortId() == this.portId) {
 				CmdBase[] resp = new CmdBase[1];
 				resp[0] = new ClientIdleStatusResp(req.getChargeId(), ErrorCode.ACT_SUCCEDED);
-				//restartTimer();
+				restartTimer();
 				return resp;
 			} else {
-				logger.log(Level.WARNING, "Receive " + cmd + " by the wrong chargePoint" );
+				logger.log(Level.WARNING, "Receive {0} by the wrong chargePoint {1} portId {2}",
+						new Object[]{req, req.getChargeId(), req.getChargePortId()});
 				return null;
 			}
 		
 		}
+		default:
+			logger.log(Level.WARNING, "Non-executable {0} by chargePoint",
+					new Object[]{cmd, cmd.getChargeId(),});
+			break;
 		}
+		
 		return state.execCmd(cmd);
 	}
 	
@@ -91,11 +116,19 @@ public class ChargePort {
 		this.localId = localId;
 	}
 	
+	public boolean getActive() {
+		return this.active;
+	}
+	
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+	
 	@Override
 	public String toString() {
-		return state.getClass().getSimpleName();
+		return "chargeId " + this.chargeId + " portId " + this.portId;
 	}
-	/*
+
 	public void restartTimer() {
 		timer.cancel();
 		timer = new Timer();
@@ -107,8 +140,9 @@ public class ChargePort {
 		public void run() {
 			//server.chargePoints.remove(chargeId);
 			logger.log(Level.WARNING, "ChargePort hasn't received ClientIdleStatus for {0} seconds. Bring it offline",
-					new Object[]{SECONDS});
+					SECONDS);
+			active = false;
 		}
 	}
-	*/
+
 }
