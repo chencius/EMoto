@@ -3,6 +3,7 @@ package com.emoto.server;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,8 @@ import java.util.logging.Logger;
 import com.emoto.statemachine.ChargePoint;
 
 import com.emoto.network.tcp.TcpServer;
+import com.emoto.persistent.HWDBManagerFactory;
+import com.emoto.persistent.data.HWId2Barcode;
 
 public class Server implements Runnable {
 	private static final String systemVariable = "CONFIG_FILE";
@@ -34,14 +37,7 @@ public class Server implements Runnable {
 			return;
 		};
 		
-		//this is a test section
-		String barcodeId = prop.getProperty("barcodeId").toString();
-		String hwId = prop.getProperty("hwId").toString();
-		HWMapping entry = new HWMapping();
-		entry.barcodeId = barcodeId;
-		entry.chargeId = chargePointId.incrementAndGet();
-		hwId2ChargePoint.put(hwId, entry);
-		//chargePoints.put(entry.chargeId, new ChargePoint(this, null));
+		loadHWInfo();
 		
 		String ip = prop.getProperty(Prop.SERVER_IP.toString());
 		int port = Integer.valueOf(prop.getProperty(Prop.SERVER_PORT.toString()));
@@ -53,10 +49,24 @@ public class Server implements Runnable {
 		}
 	}
 	
+	private void loadHWInfo() {
+		HWDBManagerFactory factory = new HWDBManagerFactory();
+		List<HWId2Barcode> HWList = factory.listElement(); 
+		for (HWId2Barcode hw : HWList) {
+			HWMapping entry = new HWMapping();
+			entry.barcodeId = hw.getBarcode();
+			entry.chargeId = chargePointId.incrementAndGet();
+			hwId2ChargePoint.put(hw.getHwId(), entry);
+			
+			System.out.println("load from DB: (" + hw.getHwId()+", " + hw.getBarcode() +", " + entry.chargeId + ")");
+		}
+	}
+	
 	private boolean loadConfig()  {
-		//String cfgFile = System.getProperty(systemVariable);
+		String cfgFile = System.getenv(systemVariable);
 		//String cfgFile = "/Users/chencius/personal/Workspace/Eclipsej2ee/EMoto/config.xml";
-		String cfgFile = "/home/chargeserver/config/EMoto.cfg";
+		//String cfgFile = "/home/chargeserver/config/EMoto.cfg";
+
 		if (cfgFile == null) {
 			logger.log(Level.WARNING, "System config file " + systemVariable + " is not defined");
 			return false;
@@ -69,6 +79,7 @@ public class Server implements Runnable {
 			logger.log(Level.WARNING, "Config file " + cfgFile + " is not found");
 			return false;
 		}
+
 		try {
 			prop.load(fis);
 		} catch (IOException e) {

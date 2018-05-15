@@ -174,7 +174,18 @@ public class CmdFactory {
 			}
 			calcLen += readLen;
 		}
+		
 		byte checksum = buf.get();
+		byte calcChecksum = 0;
+		for (int i = CHECKSUM_START_POS; i<msgLen-2; i++) {
+			calcChecksum += buf.get(i);
+		}
+		if (checksum != calcChecksum) {
+			logger.log(Level.WARNING, "Checksum incorrect. Calculated checksum is {0} while in message checksum is {1}",
+					new Object[]{calcChecksum, checksum});
+			return null;
+		}
+		
 		byte Etx = buf.get();
 		if (Etx != Header.ETX) {
 			logger.log(Level.WARNING, "Should be ETX but actually not");
