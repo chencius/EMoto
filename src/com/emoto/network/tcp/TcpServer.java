@@ -22,8 +22,10 @@ public class TcpServer {
 		}
 		
 		synchronized(TcpServer.class) {
-			serverHandler = new AsyncServerHandler(ip, port, server);
-			serverHandler.start();
+			if (serverHandler == null) {
+				serverHandler = new AsyncServerHandler(ip, port, server);
+				serverHandler.start();
+			}
 		}
 	}
 }

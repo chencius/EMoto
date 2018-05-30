@@ -11,6 +11,8 @@ import com.emoto.protocol.command.ClientConnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStartChargingResp;
 import com.emoto.protocol.fields.ErrorCode;
+import com.emoto.protocol.fields.ValueReturned;
+import com.emoto.protocol.fields.ValueReturnedStatus;
 import com.emoto.server.Server;
 
 public class Connected extends State {
@@ -26,17 +28,21 @@ public class Connected extends State {
 		switch(cmd.getInstruction()) {
 		case SERVER_START_CHARGING:
 		{
+			ValueReturned result = new ValueReturnedStatus();
 			ServerStartChargingResp resp = (ServerStartChargingResp)cmd;
 			if (resp.getSessionId() == cp.getSessionId() ) {
 				if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED)
 				{
-					//wait for chargepoint to charge bike
+					result.setStatus(true);
 				} else {
+					result.setStatus(false);
 					logger.log(Level.WARNING, "Get status " + resp.getErrorCode() + " under state " + this);
 				}
 			} else {
+				result.setStatus(false);
 				logger.log(Level.WARNING, "Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + resp.getSessionId());
 			}
+			cp.setValueReturned(result);
 			return null;
 		}
 		case CLIENT_CHARGING_STARTED:

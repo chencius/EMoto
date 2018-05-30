@@ -9,6 +9,7 @@ import com.emoto.protocol.command.ClientLoginResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.IPortBasedCmd;
 import com.emoto.protocol.fields.ErrorCode;
+import com.emoto.protocol.fields.ValueReturned;
 import com.emoto.server.Server;
 import com.emoto.server.Server.HWMapping;
 
@@ -18,6 +19,9 @@ public class ChargePoint {
 	private Server server;
 	private long chargeId;
 	private AsynchronousSocketChannel channel;
+	
+	private ValueReturned valueReturned;
+	
 	private static Logger logger = Logger.getLogger(ChargePoint.class.getName());
 	
 	public ChargePoint(Server server, AsynchronousSocketChannel channel, long chargeId) {
@@ -32,6 +36,14 @@ public class ChargePoint {
 	
 	public ChargePort[] getPorts() {
 		return this.ports;
+	}
+	
+	public ValueReturned getValueReturned() {
+		return this.valueReturned;
+	}
+	
+	public void setValueReturned(ValueReturned value) {
+		this.valueReturned = value;
 	}
 	
 	public AsynchronousSocketChannel getChannel() {

@@ -63,8 +63,8 @@ public class Server implements Runnable {
 	}
 	
 	private boolean loadConfig()  {
-		String cfgFile = System.getenv(systemVariable);
-		//String cfgFile = "/Users/chencius/personal/Workspace/Eclipsej2ee/EMoto/config.xml";
+		//String cfgFile = System.getenv(systemVariable);
+		String cfgFile = "/Users/chencius/personal/Workspace/Eclipsej2ee/EMoto/config.xml";
 		//String cfgFile = "/home/chargeserver/config/EMoto.cfg";
 
 		if (cfgFile == null) {

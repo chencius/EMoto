@@ -9,6 +9,7 @@ import com.emoto.protocol.command.ClientIdleStatusReq;
 import com.emoto.protocol.command.ClientIdleStatusResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.fields.ErrorCode;
+import com.emoto.protocol.fields.ValueReturned;
 import com.emoto.server.Server;
 
 public class ChargePort {
@@ -30,6 +31,8 @@ public class ChargePort {
 	
 	private boolean active;
 	
+	private ValueReturned valueReturned;
+	
 	private static Logger logger = Logger.getLogger(ChargePort.class.getName());
 	
 	public ChargePort(Server server, long chargeId, int portId) {
@@ -42,6 +45,8 @@ public class ChargePort {
 		
 		this.chargeId = chargeId;
 		this.portId = portId;
+		
+		this.valueReturned = null;
 		
 		this.timer = new Timer();
 		this.timerTask = new ChargePointTimerTask();
@@ -59,6 +64,14 @@ public class ChargePort {
 		this.state = state;
 	}
 	
+	public ValueReturned getValueReturned() {
+		return this.valueReturned;
+	}
+	
+	public void setValueReturned(ValueReturned value) {
+		this.valueReturned = value;
+	}
+	
 	public CmdBase[] execCmd(CmdBase cmd) {
 		logger.log(Level.INFO, "Execute {0} under state of {1}", new Object[]{cmd, this});
 		
@@ -66,6 +79,8 @@ public class ChargePort {
 			logger.log(Level.WARNING, "Receive {0} while port is inActive", cmd);
 			return null;
 		}
+		
+		setValueReturned(null);
 		
 		switch(cmd.getInstruction()) {
 		case CLIENT_IDLE_STATUS:
@@ -83,6 +98,7 @@ public class ChargePort {
 				CmdBase[] resp = new CmdBase[1];
 				resp[0] = new ClientIdleStatusResp(req.getChargeId(), ErrorCode.ACT_SUCCEDED);
 				restartTimer();
+
 				return resp;
 			} else {
 				logger.log(Level.WARNING, "Receive {0} by the wrong chargePoint {1} portId {2}",

@@ -29,17 +29,18 @@ public class Client {
 	
 	public static void main(String args[]) throws Exception {
 		client = AsynchronousSocketChannel.open();
-		InetSocketAddress address = new InetSocketAddress("39.108.6.246", 32111);
-		//InetSocketAddress address = new InetSocketAddress("127.0.0.1", 5000);
+		//InetSocketAddress address = new InetSocketAddress("39.108.6.246", 32111);
+		InetSocketAddress address = new InetSocketAddress("127.0.0.1", 5000);
 		
 		Future<Void> future = client.connect(address);
 		future.get();
 		System.out.println("Client: connected...");
 		
-		CmdBase[] cmd = new CmdBase[1];
+		CmdBase[] cmd = new CmdBase[2];
 		ClientLoginReq clientLoginReq = new ClientLoginReq(-1L, "hwId001", "1.0.0", (byte)1, 2, "software",
 				666, "abcdefgh");
 		cmd[0] = clientLoginReq;
+		cmd[1] = null;
 		ByteBuffer buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
 		
@@ -47,42 +48,29 @@ public class Client {
 		
 		ClientBikeConnectedReq clientBikeConnectedReq = new ClientBikeConnectedReq(1, (byte)1, 1, "abcdefgh");
 		cmd[0] = clientBikeConnectedReq;
+		cmd[1] = null;
 		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
 		
 		readAndPrintMsg(buffer);
+		Object o = readAndPrintMsg(buffer);
+		ServerStartChargingReq req = (ServerStartChargingReq)o;
 		
+		cmd[0] = new ServerStartChargingResp (req.getChargeId(), req.getSessionId(),
+					req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
+		System.out.println("Reply command: " + cmd[0]);
+		cmd[1] = new ClientConnectSucceedReq(req.getChargeId(), req.getSessionId(),
+				req.getChargePortId(), 100, ChargeSource.SERVER_CHARGING, "offlineChargingId", "cardId", "batteryId", "abcdefgh");
+		System.out.println("Reply command: " + cmd[1]);
+		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
+		client.write(buffer);
 		readAndPrintMsg(buffer);
 		
-		CmdBase[] comm = new CmdBase[2];
+		cmd[0] = new ServerStartChargingResp (1L, 1L, (byte)1, ErrorCode.ACT_SUCCEDED);
+		cmd[1] = null;
+		System.out.println("Reply command: " + cmd[0]);
 		
-		switch(c.getInstruction()) {
-		case SERVER_START_CHARGING:
-		{
-			ServerStartChargingReq req = (ServerStartChargingReq)c;
-			comm[0] = new ServerStartChargingResp (req.getChargeId(), req.getSessionId(),
-					req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
-			System.out.println("Reply command: " + comm[0]);
-			//error
-			//comm[1] = new ClientConnectSucceedReq(req.getChargeId(), req.getSessionId(),
-			//		req.getChargePortId(), 100, ChargeSource.SERVER_CHARGING);
-			System.out.println("Reply command: " + comm[1]);
-			break;
-		}
-		case CLIENT_CHARGING_STARTED:
-		{
-			break;
-		}
-		default:
-			break;
-		}
 		
-//		comm[0] = new ServerStartChargingResp (1L, 1L, (byte)1, ErrorCode.ACT_SUCCEDED);
-//		System.out.println("Reply command: " + comm[0]);
-//		
-//		comm[1] = new ClientConnectSucceedReq(1L, 1L,
-//				(byte)1, 100, ChargeSource.SERVER_CHARGING);
-//		System.out.println("Reply command: " + comm[1]);
 		
 		buffer = CmdFactory.encCommand(comm, Header.CLIENT_STX);
 		client.write(buffer).get();

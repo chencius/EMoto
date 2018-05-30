@@ -190,7 +190,7 @@ public class AsyncServerHandler {
 				public void completed(Integer result, ByteBuffer buf) {  
                     if (buf.hasRemaining()) {  
                     	channel.write(buf, buf, this);  
-                    }  
+                    }
                 }  
   
                 public void failed(Throwable exc, ByteBuffer attachment) {  

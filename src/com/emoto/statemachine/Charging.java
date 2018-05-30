@@ -10,6 +10,8 @@ import com.emoto.protocol.command.ClientDisconnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStopChargingResp;
 import com.emoto.protocol.fields.ErrorCode;
+import com.emoto.protocol.fields.ValueReturned;
+import com.emoto.protocol.fields.ValueReturnedStatus;
 
 public class Charging extends State {
 	private ChargePort cp;
@@ -42,13 +44,17 @@ public class Charging extends State {
 		}
 		case SERVER_STOP_CHARGING:
 		{
+			ValueReturned result = new ValueReturnedStatus();
 			ServerStopChargingResp resp = (ServerStopChargingResp)cmd;
 			if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED &&
 					resp.getSessionId() == cp.getSessionId()) {
+				result.setStatus(true);
 				logger.log(Level.INFO, "Received " + resp);
 			} else {
+				result.setStatus(false);
 				logger.log(Level.WARNING, "Incorrect ServerStopChargingResp received for chargeId " + resp.getChargeId());
 			}
+			cp.setValueReturned(result);
 			return null;
 		}
 		default:
