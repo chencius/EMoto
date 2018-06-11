@@ -2,6 +2,7 @@ package com.emoto.statemachine;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -9,8 +10,8 @@ import com.emoto.protocol.command.ClientIdleStatusReq;
 import com.emoto.protocol.command.ClientIdleStatusResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.fields.ErrorCode;
-import com.emoto.protocol.fields.ValueReturned;
 import com.emoto.server.Server;
+import com.emoto.websocket.IValueReturned;
 
 public class ChargePort {
 	public State onlineState;
@@ -19,23 +20,25 @@ public class ChargePort {
 	private State state;
 	private Server server;
 	
-	private long sessionId;
-	private int localId;
+	private volatile long sessionId;
 	
 	private long chargeId;
-	private int portId;
+	private byte portId;
+	
+	private CountDownLatch lock;
 	
 	private Timer timer;
-	private final int SECONDS = 70;
+	private final int SECONDS = 700;
 	private TimerTask timerTask;
 	
 	private boolean active;
+	private Object callback;
 	
-	private ValueReturned valueReturned;
+	private IValueReturned valueReturned;
 	
 	private static Logger logger = Logger.getLogger(ChargePort.class.getName());
 	
-	public ChargePort(Server server, long chargeId, int portId) {
+	public ChargePort(Server server, long chargeId, byte portId) {
 		this.server = server;
 		this.onlineState = new Online(this);
 		this.connectedState = new Connected(this);
@@ -46,10 +49,19 @@ public class ChargePort {
 		this.chargeId = chargeId;
 		this.portId = portId;
 		
+		this.lock = null;
 		this.valueReturned = null;
 		
 		this.timer = new Timer();
 		this.timerTask = new ChargePointTimerTask();
+	}
+
+	public long getChargeId() {
+		return chargeId;
+	}
+
+	public byte getPortId() {
+		return portId;
 	}
 
 	public Server getServer() {
@@ -64,23 +76,29 @@ public class ChargePort {
 		this.state = state;
 	}
 	
-	public ValueReturned getValueReturned() {
+	public IValueReturned getValueReturned() {
 		return this.valueReturned;
 	}
 	
-	public void setValueReturned(ValueReturned value) {
+	public void setValueReturned(IValueReturned value) {
 		this.valueReturned = value;
 	}
 	
+	public CountDownLatch getLock() {
+		return lock;
+	}
+	
+	public void setLock(CountDownLatch lock) {
+		this.lock = lock;
+	}
+	
 	public CmdBase[] execCmd(CmdBase cmd) {
-		logger.log(Level.INFO, "Execute {0} under state of {1}", new Object[]{cmd, this});
+		logger.log(Level.INFO, "Execute {0} under state of {1}", new Object[]{cmd, this.state});
 		
 		if (!getActive()) {
 			logger.log(Level.WARNING, "Receive {0} while port is inActive", cmd);
 			return null;
 		}
-		
-		setValueReturned(null);
 		
 		switch(cmd.getInstruction()) {
 		case CLIENT_IDLE_STATUS:
@@ -91,7 +109,6 @@ public class ChargePort {
 						new Object[]{req, req.getChargeId(), req.getChargePortId()});
 				return null;
 			}
-			
 			
 			if (req.getChargeId() == this.chargeId &&
 				req.getChargePortId() == this.portId) {
@@ -108,11 +125,8 @@ public class ChargePort {
 		
 		}
 		default:
-			logger.log(Level.WARNING, "Non-executable {0} by chargePoint",
-					new Object[]{cmd, cmd.getChargeId(),});
 			break;
 		}
-		
 		return state.execCmd(cmd);
 	}
 	
@@ -122,14 +136,6 @@ public class ChargePort {
 	
 	public void setSessionId(long sessionId) {
 		this.sessionId = sessionId;
-	}
-	
-	public int getLocalId() {
-		return localId;
-	}
-	
-	public void setLocalId(int localId) {
-		this.localId = localId;
 	}
 	
 	public boolean getActive() {
@@ -161,4 +167,11 @@ public class ChargePort {
 		}
 	}
 
+	public void setCallback(Object callback) {
+		this.callback = callback;
+	}
+	
+	public Object getCallback() {
+		return callback;
+	}
 }

@@ -24,6 +24,7 @@ public class CmdFactory {
 	{
 		ByteBuffer buf = ByteBuffer.allocate(BUF_SIZE);
 		buf.order(Common.endian);
+		int offset = 0;
 		
 		for (CmdBase cmd:commands) {
 			if (cmd == null) {
@@ -74,7 +75,7 @@ public class CmdFactory {
 			}
 			
 			byte checksum = 0;
-			for (int i=CHECKSUM_START_POS; i<buf.position(); i++) {
+			for (int i=offset + CHECKSUM_START_POS; i<buf.position(); i++) {
 				checksum += buf.get(i);
 			}
 			buf.put(checksum);
@@ -84,6 +85,8 @@ public class CmdFactory {
 			buf.reset();
 			buf.putShort((short)msgLen);
 			buf.position(pos);
+			
+			offset = pos;
 		}
 		
 		buf.flip();
@@ -91,129 +94,139 @@ public class CmdFactory {
 		return buf;
 	}
 
-	private static CmdBase decCommand(ByteBuffer buf, byte[] expectedHeader) throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
+	public static Object[] decCommand(ByteBuffer buf, byte[] expectedHeader) throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
 		logger.log(Level.INFO, "Received command " + byte2hex(buf));
-		if (buf.remaining() <= 7) {
-			logger.log(Level.WARNING, "Remaininig data in buffer is too short(" + buf.remaining() + "bytes )");
-			return null;
-		}
 		
-		byte[] header = new byte[2];
-		buf.get(header);
-		if (!Arrays.equals(header, expectedHeader)) {
-			logger.log(Level.WARNING, "Incorrect header found in incoming message");
-			throw new IllegalArgumentException("Incorrect header value!");
-		}
-		
-		short msgLen = buf.getShort();
-		if (buf.remaining() < msgLen - 4) {
-			logger.log(Level.WARNING, "Remaininig data in buffer is less than message length(" + msgLen + "bytes )");
-			return null;
-		}
-		
-		short calcLen = 4;
-		Instructions instruction = Instructions.valueOf(buf.get());
-		calcLen++;
-		
-		Class<?> classType = Arrays.equals(expectedHeader, Header.CLIENT_STX) ?
-				ServerCmdTable.get(instruction) : ClientCmdTable.get(instruction);
-		if ( classType == null) {
-			logger.log(Level.WARNING, "No message type is found for instruction " + instruction);
-			return null;
-		}
-		CmdBase command = null;
-		command = (CmdBase)(classType.newInstance());
-		
-		//classType.getField("instruction").set(command, instruction);
-		command.setInstruction(instruction.getValue());
-		
-		byte readData;
-		Field[] flds = classType.getDeclaredFields();
-		for (Field f : flds) {
-			Annotation ann = f.getDeclaredAnnotation(FieldDesc.class);
-			if (ann == null) {
-				continue;
-			}
-			
-			boolean checkValidity = ((FieldDesc) ann).checkValidity();
-			byte seqNum = ((FieldDesc) ann).seqnum();
-			readData = buf.get();
-			calcLen++;
-			if (checkValidity == true && readData != seqNum) {
-				logger.log(Level.WARNING, "Incorrect seq number. Should be {0} but read result is {1}", new Object[] {seqNum, readData});
-				return null;
-			}
-			
-			byte fieldLen = ((FieldDesc) ann).length();
-			byte readLen = buf.get();
-			if (checkValidity == true && fieldLen != readLen) {
-				logger.log(Level.WARNING, "Incorrecct field length. Should be {0} but read result is {1}", new Object[] {fieldLen, readLen});
-				return null;
-			} else {
-				calcLen++;
-			}
-			Class<?> type = f.getType();
-			if (type == long.class) {
-				long data = buf.getLong();
-				f.set(command, data);
-			} else if (type == int.class) {
-				int data = buf.getInt();
-				f.set(command,  data);
-			} else if (type == short.class) {
-				short data = buf.getShort();
-				f.set(command,  data);
-			} else if (type == byte.class) {
-				byte data = buf.get();
-				f.set(command,  data);
-			} else if (type == String.class) {
-				//byte[] str = new byte[fieldLen];
-				byte[] str = new byte[readLen];
-				buf.get(str);
-				String data = new String(str);
-				f.set(command, data.trim());
-			}
-			calcLen += readLen;
-		}
-		
-		byte checksum = buf.get();
-		byte calcChecksum = 0;
-		for (int i = CHECKSUM_START_POS; i<msgLen-2; i++) {
-			calcChecksum += buf.get(i);
-		}
-		if (checksum != calcChecksum) {
-			logger.log(Level.WARNING, "Checksum incorrect. Calculated checksum is {0} while in message checksum is {1}",
-					new Object[]{calcChecksum, checksum});
-			return null;
-		}
-		
-		byte Etx = buf.get();
-		if (Etx != Header.ETX) {
-			logger.log(Level.WARNING, "Should be ETX but actually not");
-			return null;
-		}
-		calcLen += 2;
-		
-		if (calcLen != msgLen) {
-			logger.log(Level.WARNING, "Incorrecct length of message. Should be {0} but read result is {1}", new Object[] {msgLen, calcLen});
-			return null;
-		}
-		
-		return command;
-	}
-	
-	public static Object[] decCommandAll(ByteBuffer buf, byte[] expectedHeader) throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
 		ArrayList<CmdBase> arr = new ArrayList<CmdBase>();
 		buf.order(Common.endian);
+		int offset = 0;
 		while (buf.remaining() > 0) {
-			CmdBase cmd = decCommand(buf, expectedHeader);
-			if (cmd != null) {
-				arr.add(cmd);
-			} else {
+			if (buf.remaining() <= 7) {
+				logger.log(Level.WARNING, "Remaininig data in buffer is too short(" + buf.remaining() + "bytes )");
 				break;
 			}
+		
+			byte[] header = new byte[2];
+			buf.get(header);
+			if (!Arrays.equals(header, expectedHeader)) {
+				logger.log(Level.WARNING, "Incorrect header found in incoming message");
+				throw new IllegalArgumentException("Incorrect header value!");
+			}
+		
+			short msgLen = buf.getShort();
+			if (buf.remaining() < msgLen - 4) {
+				logger.log(Level.WARNING, "Remaininig data in buffer is less than message length(" + msgLen + "bytes )");
+				break;
+			}
+		
+			short calcLen = 4;
+			Instructions instruction = Instructions.valueOf(buf.get());
+			calcLen++;
+		
+			Class<?> classType = Arrays.equals(expectedHeader, Header.CLIENT_STX) ?
+					ServerCmdTable.get(instruction) : ClientCmdTable.get(instruction);
+			if ( classType == null) {
+				logger.log(Level.WARNING, "No message type is found for instruction " + instruction);
+				break;
+			}
+			CmdBase command = null;
+			command = (CmdBase)(classType.newInstance());
+		
+			//classType.getField("instruction").set(command, instruction);
+			command.setInstruction(instruction.getValue());
+		
+			byte readData;
+			Field[] flds = classType.getDeclaredFields();
+			for (Field f : flds) {
+				Annotation ann = f.getDeclaredAnnotation(FieldDesc.class);
+				if (ann == null) {
+					continue;
+				}
+			
+				boolean checkValidity = ((FieldDesc) ann).checkValidity();
+				byte seqNum = ((FieldDesc) ann).seqnum();
+				readData = buf.get();
+				calcLen++;
+				if (checkValidity == true && readData != seqNum) {
+					logger.log(Level.WARNING, "Incorrect seq number. Should be {0} but read result is {1}", new Object[] {seqNum, readData});
+					break;
+				}
+			
+				byte fieldLen = ((FieldDesc) ann).length();
+				byte readLen = buf.get();
+				if (checkValidity == true && fieldLen != readLen) {
+					logger.log(Level.WARNING, "Incorrecct field length. Should be {0} but read result is {1}", new Object[] {fieldLen, readLen});
+					break;
+				} else {
+					calcLen++;
+				}
+				Class<?> type = f.getType();
+				if (type == long.class) {
+					long data = buf.getLong();
+					f.set(command, data);
+				} else if (type == int.class) {
+					int data = buf.getInt();
+					f.set(command,  data);
+				} else if (type == short.class) {
+					short data = buf.getShort();
+					f.set(command,  data);
+				} else if (type == byte.class) {
+					byte data = buf.get();
+					f.set(command,  data);
+				} else if (type == String.class) {
+					//byte[] str = new byte[fieldLen];
+					byte[] str = new byte[readLen];
+					buf.get(str);
+					String data = new String(str);
+					f.set(command, data.trim());
+				}
+				calcLen += readLen;
+			}
+		
+			byte checksum = buf.get();
+			byte calcChecksum = 0;
+			for (int i = offset + CHECKSUM_START_POS; i<offset + msgLen - 2; i++) {
+				calcChecksum += buf.get(i);
+			}
+			if (checksum != calcChecksum) {
+				logger.log(Level.WARNING, "Checksum incorrect. Calculated checksum is {0} while in message checksum is {1}",
+					new Object[]{calcChecksum, checksum});
+				break;
+			}
+		
+			byte Etx = buf.get();
+			if (Etx != Header.ETX) {
+				logger.log(Level.WARNING, "Should be ETX but actually not");
+				break;
+			}
+			calcLen += 2;
+		
+			if (calcLen != msgLen) {
+				logger.log(Level.WARNING, "Incorrecct length of message. Should be {0} but read result is {1}", new Object[] {msgLen, calcLen});
+				break;
+			}
+			
+			arr.add(command);
+			
+			offset = buf.position();
 		}
+		
 		return arr.toArray();
 	}
+	
+//	public static Object[] decCommandAll(ByteBuffer buf, byte[] expectedHeader) throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
+//		ArrayList<CmdBase> arr = new ArrayList<CmdBase>();
+//		buf.order(Common.endian);
+//		while (buf.remaining() > 0) {
+//			CmdBase cmd = decCommand(buf, expectedHeader);
+//			if (cmd != null) {
+//				arr.add(cmd);
+//			} else {
+//				break;
+//			}
+//		}
+//		return arr.toArray();
+//	}
 	
 	public static final Map<Instructions, Class<?>> ServerCmdTable = new HashMap<Instructions, Class<?>>() {
 		/**

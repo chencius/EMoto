@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" http-equiv="access-control-allow-origin" content="http://39.108.6.246">
+        <title>eMoto Charger</title>
+        <h3>MiniProgram eMoto Charger</h3>
+    </head>
+
+    <body>
+        <p>Input Charger HwId:</p>
+        <input type="text" id="ChargerID" />
+        <p>Input Charger OutletId:</p>
+        <input type="text" id="OutletID" />
+        <br>
+        <input id="StartAction" type="button" value="Start"/>
+        <input id="StopAction" type="button" value="Stop"/>
+        <input id="StatusAction" type="button" value="Status"/>
+        <p>Charger Status:
+            <span id="StatusID"></span>
+        </p>
+        <p>
+           Voltage:
+            <span id="VoltageID"></span>
+        </p>
+        <p>
+           Current:
+            <span id="CurrentID"></span>
+        </p>
+        <p>
+           Meter:
+            <span id="MeterId"></span>
+        </p>
+        <p>
+           FinishTime:
+            <span id="FinishTimeId"></span>
+        </p>
+        <script type="text/javascript">
+        	var webSocket = new WebSocket("ws://39.108.6.246:8080/EMoto/EMotoEntry");
+        	//var webSocket = new WebSocket("ws://127.0.0.1:8080/WebSocket/EMotoEntry");
+        	//var webSocket = new WebSocket("ws://127.0.0.1:8080/EMoto/EMotoEntry");
+        	function SendData(func, chargeId, portId) {
+        		this.func = func;
+        		this.hwId = chargeId;
+        		this.portId = portId;
+        	}
+        	
+        	webSocket.onopen = function(message){ wsOpen(message);};
+        	webSocket.onmessage = function(message){ wsGetMessage(message);};
+        	webSocket.onclose = function(message){ wsClose(message);};
+        	webSocket.onerror = function(message){ wsError(message);};
+        	function wsOpen(message){
+            	
+        	}
+        	function wsSendMessage(obj){
+        		var finalData = JSON.stringify(obj);
+            	webSocket.send(finalData);
+        	}
+        	function wsCloseConnection(){
+            	webSocket.close();
+        	}
+        	function wsGetMessage(message){
+            	var obj = JSON.parse(message.data);
+            	
+            	document.getElementById('StatusID').innerHTML=obj.status;
+                document.getElementById('StatusID').style.color="red";
+                document.getElementById('VoltageID').innerHTML=obj.voltage.toFixed(2);
+                document.getElementById('VoltageID').style.color="red";
+                document.getElementById('CurrentID').innerHTML=obj.currency.toFixed(2);
+                document.getElementById('CurrentID').style.color="red";
+                document.getElementById('MeterId').innerHTML=obj.meter.toFixed(2);
+                document.getElementById('MeterId').style.color="red";
+                document.getElementById('FinishTimeId').innerHTML=obj.estimatedTime.toFixed(2);
+                document.getElementById('FinishTimeId').style.color="red";
+        	}
+        	function wsClose(message){
+            	
+        	}
+        	function wserror(message){
+            	
+        	}
+        	
+            function sendrequest() {
+                var btnStatus=document.getElementById('StatusAction');
+                var btnStart=document.getElementById('StartAction');
+                var btnStop=document.getElementById('StopAction');
+            
+                btnStatus.onclick=function(){
+                    requestStatus(); }
+                btnStart.onclick=function(){
+                    requestStart();
+                }
+                btnStop.onclick=function(){
+                    requestStop();
+                }
+            }
+            
+            function initDisplay() {
+                document.getElementById('StatusID').innerHTML="N/A";
+                document.getElementById('VoltageID').innerHTML="N/A";
+                document.getElementById('CurrentID').innerHTML="N/A";
+                document.getElementById('MeterId').innerHTML="N/A";
+                document.getElementById('FinishTimeId').innerHTML="N/A";
+            }
+
+            function requestStatus() {
+                try{
+                	var chargeId = document.getElementById("ChargerID").value;
+                	var portId = document.getElementById("OutletID").value;
+                	var data = new SendData("chargingStatus", chargeId, portId);
+                	wsSendMessage(data);
+                } catch(err)
+                {
+                    txt="Error occured.\n\n";
+                    txt+="Error name: "+err+"\n\n";
+                    txt+="Click OK to continue.\n\n";
+                    alert(txt);
+                }
+            }
+            
+            function requestStart() {
+                try{                  
+                	var chargeId = document.getElementById("ChargerID").value;
+                	var portId = document.getElementById("OutletID").value;
+                	var data = new SendData("startCharging", chargeId, portId);
+                	wsSendMessage(data);
+                } catch(err)
+                {
+                    txt="Error occured.\n\n";
+                    txt+="Error name: "+err+"\n\n";
+                    txt+="Click OK to continue.\n\n";
+                    alert(txt);
+                }
+            }
+            
+            function requestStop() {
+                try {
+                	var chargeId = document.getElementById("ChargerID").value;
+                	var portId = document.getElementById("OutletID").value;
+                	var data = new SendData("stopCharging", chargeId, portId);
+                	wsSendMessage(data);
+                } catch(err)
+                {
+                    txt="Error occured.\n\n";
+                    txt+="Error name: "+err+"\n\n";
+                    txt+="Click OK to continue.\n\n";
+                    alert(txt);
+                }
+            }
+            
+            try {
+                sendrequest();
+                initDisplay();
+            } catch(err)
+            {
+                txt="Error occured.\n\n";
+                txt+="Error name: "+err+"\n\n";
+                txt+="Click OK to continue.\n\n";
+                alert(txt);
+            }
+        </script>
+    </body>
+</html>

@@ -27,9 +27,9 @@ public class Online extends State {
 			resp[0] = new ClientBikeConnectedResp(
 					req.getChargeId(), req.getChargePortId(), req.getLocalId(), ErrorCode.ACT_SUCCEDED);
 			
-			long sessionId = cp.getServer().sessionId.incrementAndGet();
-			cp.setSessionId(sessionId);
-			cp.setLocalId(req.getLocalId());
+//			long sessionId = cp.getServer().sessionId.incrementAndGet();
+//			cp.setSessionId(sessionId);
+//			cp.setLocalId(req.getLocalId());
 			cp.setState(cp.connectedState);
 			return resp;
 		}

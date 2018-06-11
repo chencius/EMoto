@@ -29,6 +29,7 @@ public class AsyncServerHandler {
 	private int port;
 	private boolean exit = false;
 	public Server server;
+	private Object callback;
 	
 	private static final int BUF_SIZE = 1024;
 	
@@ -106,7 +107,7 @@ public class AsyncServerHandler {
 			buf.flip();
 			Object commands[] = null;
 			try {
-				commands = CmdFactory.decCommandAll(buf, Header.CLIENT_STX);
+				commands = CmdFactory.decCommand(buf, Header.CLIENT_STX);
 			} catch (IllegalArgumentException | IllegalAccessException | InstantiationException | NoSuchFieldException
 					| SecurityException e) {
 				logger.log(Level.WARNING, "Error decoding command from chargeＰoint");
@@ -130,6 +131,7 @@ public class AsyncServerHandler {
 						cp = server.chargePoints.get(chargePointInfo.chargeId);
 						if (cp == null) {
 							server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
+							cp.setCallback(callback);
 							logger.log(Level.INFO, "Receive registration for chargeId {0} with {1}",
 								new Object[]{chargePointInfo.chargeId, req});
 						} else {
@@ -204,14 +206,8 @@ public class AsyncServerHandler {
 			});
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
+	public void setCallback(Object callback) {
+		this.callback = callback;
+	}
 }

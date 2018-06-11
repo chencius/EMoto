@@ -10,10 +10,14 @@ import com.emoto.statemachine.State;
 
 public class TcpServer {
 	private static AsyncServerHandler serverHandler;
-	
+	private static Object callback;
 	private static Logger logger = Logger.getLogger(TcpServer.class.getName());
 	
 	private TcpServer() {
+	}
+	
+	public static void setCallback(Object callback) {
+		TcpServer.callback = callback;
 	}
 	
 	public static void start(String ip, int port, Server server) throws IOException {
@@ -24,6 +28,7 @@ public class TcpServer {
 		synchronized(TcpServer.class) {
 			if (serverHandler == null) {
 				serverHandler = new AsyncServerHandler(ip, port, server);
+				serverHandler.setCallback(callback);
 				serverHandler.start();
 			}
 		}

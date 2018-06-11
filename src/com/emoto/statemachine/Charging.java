@@ -10,8 +10,9 @@ import com.emoto.protocol.command.ClientDisconnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStopChargingResp;
 import com.emoto.protocol.fields.ErrorCode;
-import com.emoto.protocol.fields.ValueReturned;
-import com.emoto.protocol.fields.ValueReturnedStatus;
+import com.emoto.server.ServerControl;
+import com.emoto.websocket.IValueReturned;
+import com.emoto.websocket.ValueReturned;
 
 public class Charging extends State {
 	private ChargePort cp;
@@ -30,21 +31,37 @@ public class Charging extends State {
 			CmdBase[] resp = new CmdBase[1];
 			resp[0] = new ClientChargingStatusResp(
 					req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
+			
+			IValueReturned result = new ValueReturned();
+			result.setChargeId(cp.getChargeId());
+			result.setPortId(cp.getPortId());
+			result.setMeterValue(req.getMeterValue());
+			result.setBatteryEnergy(req.getBatteryEnergy());
+			result.setVoltage(req.getChargingVoltage());
+			result.setCurrency(req.getChargingCurrency());
+			result.setEstimatedTime(req.getEstimatedFinishTime());
+			ServerControl.Callback cb = (ServerControl.Callback)(cp.getCallback());
+			cb.report(result);
 			return resp;
 		}
 		case CLIENT_CHARGING_STOPPED:
 		{
+			IValueReturned result = new ValueReturned();
 			ClientDisconnectSucceedReq req = (ClientDisconnectSucceedReq)cmd;
 			CmdBase[] resp = new CmdBase[1];
 			resp[0] = new ClientDisconnectSucceedResp(
 					req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
 			logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.connectedState});
 			cp.setState(cp.connectedState);
+			
+			result.setStatus(true);
+			cp.setValueReturned(result);
+			cp.getLock().countDown();
 			return resp;
 		}
 		case SERVER_STOP_CHARGING:
 		{
-			ValueReturned result = new ValueReturnedStatus();
+			IValueReturned result = new ValueReturned();
 			ServerStopChargingResp resp = (ServerStopChargingResp)cmd;
 			if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED &&
 					resp.getSessionId() == cp.getSessionId()) {

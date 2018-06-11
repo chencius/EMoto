@@ -9,9 +9,9 @@ import com.emoto.protocol.command.ClientLoginResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.IPortBasedCmd;
 import com.emoto.protocol.fields.ErrorCode;
-import com.emoto.protocol.fields.ValueReturned;
 import com.emoto.server.Server;
 import com.emoto.server.Server.HWMapping;
+import com.emoto.websocket.IValueReturned;
 
 public class ChargePoint {
 	public final int PORT_NUM = 6;
@@ -19,8 +19,9 @@ public class ChargePoint {
 	private Server server;
 	private long chargeId;
 	private AsynchronousSocketChannel channel;
+	private Object callback;
 	
-	private ValueReturned valueReturned;
+	private IValueReturned valueReturned;
 	
 	private static Logger logger = Logger.getLogger(ChargePoint.class.getName());
 	
@@ -30,7 +31,8 @@ public class ChargePoint {
 		this.chargeId = chargeId;
 		ports = new ChargePort[PORT_NUM];
 		for (int i=0; i<ports.length; i++) {
-			ports[i] = new ChargePort(server, chargeId, i+1);
+			ports[i] = new ChargePort(server, chargeId, (byte)(i+1));
+			ports[i].setCallback(callback);
 		}
 	}
 	
@@ -38,11 +40,11 @@ public class ChargePoint {
 		return this.ports;
 	}
 	
-	public ValueReturned getValueReturned() {
+	public IValueReturned getValueReturned() {
 		return this.valueReturned;
 	}
 	
-	public void setValueReturned(ValueReturned value) {
+	public void setValueReturned(IValueReturned value) {
 		this.valueReturned = value;
 	}
 	
@@ -71,6 +73,7 @@ public class ChargePoint {
 						ports[i].setState(ports[i].onlineState);
 						ports[i].setActive(true);
 						ports[i].restartTimer();
+						ports[i].setCallback(callback);
 					}
 				} else {
 					resp[0] = new ClientLoginResp(-1L, req.getLocalId(), ErrorCode.CHARGE_ID_ERR);
@@ -83,5 +86,9 @@ public class ChargePoint {
 				return null;
 			}
 		}
+	}
+	
+	public void setCallback(Object callback) {
+		this.callback = callback;
 	}
 }

@@ -22,13 +22,13 @@ public class ClientConnectSucceedReq implements CmdBase, IPortBasedCmd {
 	@FieldDesc(length=1, seqnum=0x05)
 	protected byte source;
 	
-	@FieldDesc(length=4, seqnum=0x06)
+	@FieldDesc(length=8, seqnum=0x06)
 	protected String offlineChargingId;
 	
-	@FieldDesc(length=4, seqnum=0x07)
+	@FieldDesc(length=8, seqnum=0x07)
 	protected String cardId;
 	
-	@FieldDesc(length=4, seqnum=0x08)
+	@FieldDesc(length=8, seqnum=0x08)
 	protected String batteryId;
 	
 	@FieldDesc(length=2, seqnum=0x7F)

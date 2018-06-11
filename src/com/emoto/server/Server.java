@@ -23,8 +23,10 @@ public class Server implements Runnable {
 	private Properties prop;
 	public Map<Long, ChargePoint> chargePoints = new ConcurrentHashMap<>();
 	public Map<String, HWMapping> hwId2ChargePoint = new ConcurrentHashMap<>();
-	public AtomicLong sessionId = new AtomicLong(0);
-	public AtomicLong chargePointId = new AtomicLong(0);
+	public volatile AtomicLong sessionId = new AtomicLong(0);
+	public volatile AtomicLong chargePointId = new AtomicLong(0);
+	
+	public Object callback;
 	
 	public static void main(String argv[]) {
 		Server server = new Server();
@@ -38,6 +40,7 @@ public class Server implements Runnable {
 		};
 		
 		loadHWInfo();
+		TcpServer.setCallback(callback);
 		
 		String ip = prop.getProperty(Prop.SERVER_IP.toString());
 		int port = Integer.valueOf(prop.getProperty(Prop.SERVER_PORT.toString()));
@@ -63,8 +66,8 @@ public class Server implements Runnable {
 	}
 	
 	private boolean loadConfig()  {
-		//String cfgFile = System.getenv(systemVariable);
-		String cfgFile = "/Users/chencius/personal/Workspace/Eclipsej2ee/EMoto/config.xml";
+		String cfgFile = System.getenv(systemVariable);
+		//String cfgFile = "/Users/chencius/config/config.xml";
 		//String cfgFile = "/home/chargeserver/config/EMoto.cfg";
 
 		if (cfgFile == null) {
@@ -121,6 +124,10 @@ public class Server implements Runnable {
 				return null;
 			}
 		}
+	}
+	
+	public void setCallback(Object callback) {
+		this.callback = callback;
 	}
 	
 	public class HWMapping {

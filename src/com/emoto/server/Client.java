@@ -22,7 +22,6 @@ import com.emoto.protocol.fields.ChargeSource;
 import com.emoto.protocol.fields.ChargeStatus;
 import com.emoto.protocol.fields.ErrorCode;
 import com.emoto.protocol.fields.Header;
-import com.emoto.protocol.fields.Instructions;
 
 public class Client {
 	private static AsynchronousSocketChannel client;
@@ -36,95 +35,68 @@ public class Client {
 		future.get();
 		System.out.println("Client: connected...");
 		
+		//login
 		CmdBase[] cmd = new CmdBase[2];
-		ClientLoginReq clientLoginReq = new ClientLoginReq(-1L, "hwId001", "1.0.0", (byte)1, 2, "software",
-				666, "abcdefgh");
+		ClientLoginReq clientLoginReq = new ClientLoginReq(-1L, "hwId1", "1.0.0", (byte)1, 1, "software",
+				666, "ab");
 		cmd[0] = clientLoginReq;
 		cmd[1] = null;
 		ByteBuffer buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
-		
 		readAndPrintMsg(buffer);
 		
-		ClientBikeConnectedReq clientBikeConnectedReq = new ClientBikeConnectedReq(1, (byte)1, 1, "abcdefgh");
+		//to server - connected request
+		ClientBikeConnectedReq clientBikeConnectedReq = new ClientBikeConnectedReq(1, (byte)1, 1, "ab");
 		cmd[0] = clientBikeConnectedReq;
 		cmd[1] = null;
 		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
-		
 		readAndPrintMsg(buffer);
-		Object o = readAndPrintMsg(buffer);
-		ServerStartChargingReq req = (ServerStartChargingReq)o;
 		
+		Object[] o = readAndPrintMsg(buffer);
+		ServerStartChargingReq req = (ServerStartChargingReq)o[0];
+		//to server - charging request received
 		cmd[0] = new ServerStartChargingResp (req.getChargeId(), req.getSessionId(),
 					req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
 		System.out.println("Reply command: " + cmd[0]);
+		//to server - start charging successfully request
 		cmd[1] = new ClientConnectSucceedReq(req.getChargeId(), req.getSessionId(),
-				req.getChargePortId(), 100, ChargeSource.SERVER_CHARGING, "offlineChargingId", "cardId", "batteryId", "abcdefgh");
+				req.getChargePortId(), 100, ChargeSource.SERVER_CHARGING, "offline", "cardId", "batId", "ab");
 		System.out.println("Reply command: " + cmd[1]);
 		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
 		readAndPrintMsg(buffer);
 		
-		cmd[0] = new ServerStartChargingResp (1L, 1L, (byte)1, ErrorCode.ACT_SUCCEDED);
+		//to server - charging status report
+		cmd[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CONNECTED, ErrorCode.ACT_SUCCEDED,
+				200, (byte)11, (short)12, (short)13, (byte)14, ChargeSource.SERVER_CHARGING, "", "ab");
 		cmd[1] = null;
-		System.out.println("Reply command: " + cmd[0]);
-		
-		
-		
-		buffer = CmdFactory.encCommand(comm, Header.CLIENT_STX);
-		client.write(buffer).get();
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
-		
-		CmdBase[] cmd1 = new CmdBase[2];
-		/*
-		cmd1[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CONNECTED, ErrorCode.ACT_SUCCEDED,
-				200, (byte)11, (short)12, (short)13, (byte)14, ChargeSource.SERVER_CHARGING);
-		cmd1[1] = null;
-		buffer = CmdFactory.encCommand(cmd1, Header.CLIENT_STX);
+		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		readAndPrintMsg(buffer);
 		
-		cmd1[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CONNECTED, ErrorCode.ACT_SUCCEDED,
-				300, (byte)15, (short)16, (short)17, (byte)18, ChargeSource.SERVER_CHARGING);
-				*/
-		cmd1[1] = null;
-		buffer = CmdFactory.encCommand(cmd1, Header.CLIENT_STX);
+		//to server - charging status report
+		cmd[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CONNECTED, ErrorCode.ACT_SUCCEDED,
+				202, (byte)12, (short)14, (short)15, (byte)12, ChargeSource.SERVER_CHARGING, "", "ab");
+		cmd[1] = null;
+		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		readAndPrintMsg(buffer);
 		
-		//here is to receive stop req
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
-		ServerStopChargingReq req = (ServerStopChargingReq)objs[0];
-		cmd1[0] = new ServerStopChargingResp(req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
-		cmd1[1] = new ClientDisconnectSucceedReq(req.getChargeId(), req.getSessionId(), req.getChargePortId(), 500, ChargeSource.SERVER_CHARGING, ErrorCode.ACT_SUCCEDED);
-		buffer = CmdFactory.encCommand(cmd1, Header.CLIENT_STX);
+		//here is to receive stop request
+		o = readAndPrintMsg(buffer);
+		ServerStopChargingReq req1 = (ServerStopChargingReq)o[0];
+		cmd[0] = new ServerStopChargingResp(req1.getChargeId(), req1.getSessionId(), req1.getChargePortId(), ErrorCode.ACT_SUCCEDED);
+		cmd[1] = new ClientDisconnectSucceedReq(req1.getChargeId(), req1.getSessionId(), req1.getChargePortId(), 500, ChargeSource.SERVER_CHARGING, ErrorCode.ACT_SUCCEDED, "", "", 101, "ab");
+		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		readAndPrintMsg(buffer);
 		
-		cmd1[0] = new ClientBikeDisconnectedReq(req.getChargeId(), req.getChargePortId(), 1, "abcdefgh");
-		cmd1[1] = null;
-		buffer = CmdFactory.encCommand(cmd1, Header.CLIENT_STX);
+		cmd[0] = new ClientBikeDisconnectedReq(1L, (byte)1, 1, "ab");
+		cmd[1] = null;
+		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
-		buffer.clear();
-		client.read(buffer).get();
-		buffer.flip();
-		objs = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		readAndPrintMsg(buffer);
 	}
 	
 	private static Object[] readAndPrintMsg(ByteBuffer buffer) throws InterruptedException, ExecutionException, IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
@@ -132,7 +104,7 @@ public class Client {
 		client.read(buffer).get();
 		buffer.flip();
 		
-		Object[] obj = CmdFactory.decCommandAll(buffer, Header.SERVER_STX);
+		Object[] obj = CmdFactory.decCommand(buffer, Header.SERVER_STX);
 		for (Object o : obj) {
 			CmdBase cmd = (CmdBase)o;
 			System.out.println("Receive " + cmd);
