@@ -9,6 +9,7 @@ import com.emoto.protocol.command.ClientDisconnectSucceedReq;
 import com.emoto.protocol.command.ClientDisconnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStopChargingResp;
+import com.emoto.protocol.fields.ChargeStatus;
 import com.emoto.protocol.fields.ErrorCode;
 import com.emoto.server.ServerControl;
 import com.emoto.websocket.IValueReturned;
@@ -35,11 +36,13 @@ public class Charging extends State {
 			IValueReturned result = new ValueReturned();
 			result.setChargeId(cp.getChargeId());
 			result.setPortId(cp.getPortId());
+			result.setStatus(req.getStatus().equals(ChargeStatus.CHARGING));
 			result.setMeterValue(req.getMeterValue());
 			result.setBatteryEnergy(req.getBatteryEnergy());
 			result.setVoltage(req.getChargingVoltage());
 			result.setCurrency(req.getChargingCurrency());
 			result.setEstimatedTime(req.getEstimatedFinishTime());
+			logger.log(Level.INFO, "CLIENT_CHARGING_STATUS: " + result );
 			ServerControl.Callback cb = (ServerControl.Callback)(cp.getCallback());
 			cb.report(result);
 			return resp;
@@ -63,8 +66,8 @@ public class Charging extends State {
 		{
 			IValueReturned result = new ValueReturned();
 			ServerStopChargingResp resp = (ServerStopChargingResp)cmd;
-			if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED &&
-					resp.getSessionId() == cp.getSessionId()) {
+
+			if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED) {
 				result.setStatus(true);
 				logger.log(Level.INFO, "Received " + resp);
 			} else {

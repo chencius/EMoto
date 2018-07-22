@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.emoto.protocol.fields.Header;
-import com.emoto.protocol.fields.Instructions;
 import com.emoto.protocol.fields.Common;
 import com.emoto.protocol.fields.FieldDesc;
+import com.emoto.protocol.fields.Header;
+import com.emoto.protocol.fields.Instructions;
 
 public class CmdFactory {
 	private static final int BUF_SIZE = 2048;
@@ -90,12 +90,12 @@ public class CmdFactory {
 		}
 		
 		buf.flip();
-		logger.log(Level.INFO, "Encoded command " + byte2hex(buf));
+		logger.log(Level.FINE, "Encoded command " + byte2hex(buf));
 		return buf;
 	}
 
 	public static Object[] decCommand(ByteBuffer buf, byte[] expectedHeader) throws IllegalArgumentException, IllegalAccessException, InstantiationException, NoSuchFieldException, SecurityException {
-		logger.log(Level.INFO, "Received command " + byte2hex(buf));
+		logger.log(Level.FINE, "Received command " + byte2hex(buf));
 		
 		ArrayList<CmdBase> arr = new ArrayList<CmdBase>();
 		buf.order(Common.endian);

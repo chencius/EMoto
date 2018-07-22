@@ -44,8 +44,11 @@ public class ServerControl {
 	static {
 		server = new Server();
 		server.setCallback(cb);
-		new Thread(server).start();
-		System.out.println("ServerControl init done!");
+		Thread dbThread = new Thread(server);
+		dbThread.setName("dbThread");
+		dbThread.setDaemon(true);
+		dbThread.start();
+		System.out.println("ServerControl init done!!!");
 	}
 
 	@OnOpen
@@ -178,7 +181,7 @@ public class ServerControl {
         	ChargePort[] ports = cp.getPorts();
         	
         	try {
-        		CountDownLatch lock = ports[portId].getLock();
+        		CountDownLatch lock = ports[portId-1].getLock();
         		if (lock != null) {
         			lock.await();
         		}
@@ -188,7 +191,7 @@ public class ServerControl {
     			e.printStackTrace();
     		}
         	
-        	ret = cp.getPorts()[portId].getValueReturned();
+        	ret = cp.getPorts()[portId-1].getValueReturned();
         }
 		return ret;
 	}

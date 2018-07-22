@@ -1,6 +1,5 @@
 {\rtf1\ansi\ansicpg936\cocoartf1348\cocoasubrtf170
-{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset134 STHeitiSC-Light;\f2\fnil\fcharset0 Tahoma;
-\f3\fnil\fcharset0 Menlo-Regular;}
+{\fonttbl\f0\froman\fcharset0 Times-Roman;\f1\fnil\fcharset134 STSongti-SC-Regular;}
 {\colortbl;\red255\green255\blue255;\red38\green38\blue38;\red249\green249\blue251;}
 \paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
@@ -20,33 +19,47 @@
 		CATALINA_OPTS=\'93$CATALINA_OPTS -server -Xdebug -Xnoagent -Djava.compiler=NONE -Xrundwp:transport=dt_socket,server=y,suspend=n,address=8000\'94\
          
 \f1 \'d7\'a2\'a3\'ba
-\f0\fs21 \expnd0\expndtw0\kerning0
+\f0 \expnd0\expndtw0\kerning0
 8000
 \f1 \'ca\'c7
 \f0 eclipse
 \f1 \'d3\'eb
 \f0 tomcat
 \f1 \'b5\'f7\'ca\'d4\'cd\'a8\'d1\'b6\'d3\'c3\'b5\'c4\'b6\'cb\'bf\'da
-\f0\fs24 \kerning1\expnd0\expndtw0 \
+\f0 \kerning1\expnd0\expndtw0 \
     b) 
-\f1\fs21 \expnd0\expndtw0\kerning0
+\f1 \expnd0\expndtw0\kerning0
 \'b4\'f2\'bf\'aa
 \f0 eclipse
 \f1 \'b5\'c4
 \f0 debug
 \f1 \'c5\'e4\'d6\'c3\'cf\'ee\'a3\'ac\'d4\'da
 \f0 remote java application
-\f1 \'cf\'c2\'d0\'c2\'bd\'a8\'d2\'bb\'b8\'f6\'c6\'f4\'b6\'af\'c5\'e4\'d6\'c3\'a3\'acConnection Type\'d1\'a1Standard(Socket Attach), Host\'ba\'cdPort\'cc\'eelocalhost\'ba\'cd8000\
-     c) \'b5\'e3\'bb\'f7debug\'bf\'aa\'ca\'bc\'b5\'f7\'ca\'d4\'a3\'a8\'d6\'ae\'c7\'b0\'c6\'f4\'b6\'aftomcat\'a3\'a9\
+\f1 \'cf\'c2\'d0\'c2\'bd\'a8\'d2\'bb\'b8\'f6\'c6\'f4\'b6\'af\'c5\'e4\'d6\'c3\'a3\'ac
+\f0 Connection Type
+\f1 \'d1\'a1
+\f0 Standard(Socket Attach), Host
+\f1 \'ba\'cd
+\f0 Port
+\f1 \'cc\'ee
+\f0 localhost
+\f1 \'ba\'cd
+\f0 8000\
+     c) 
+\f1 \'b5\'e3\'bb\'f7
+\f0 debug
+\f1 \'bf\'aa\'ca\'bc\'b5\'f7\'ca\'d4\'a3\'a8\'d6\'ae\'c7\'b0\'c6\'f4\'b6\'af
+\f0 tomcat
+\f1 \'a3\'a9
+\f0 \
 \
-
-\fs24 \expnd0\expndtw0\kerning0
-2. In mac, use \'a1\'b0lsof -Pnl +M | grep 5000\'a1\'b1 to check the process using port 5000\
+2. In mac, use \'93lsof -Pnl +M | grep 5000\'94 to check the process using port 5000\
 \
-3. tomcat\'c6\'f4\'b6\'af\'c2\'fd\
+3. tomcat
+\f1 \'c6\'f4\'b6\'af\'c2\'fd
+\f0 \
 \pard\pardeftab720
-
-\f2\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\cf2 \cb3 \expnd0\expndtw0\kerning0
 vim $JAVA_HOME/jre/lib/security/java.security\'a0\cb1 \expnd0\expndtw0\kerning0
 \
 \cb3 \expnd0\expndtw0\kerning0
@@ -55,21 +68,23 @@ securerandom.source=file:/dev/random\cb1 \expnd0\expndtw0\kerning0
 
 \f1 \cb3 \expnd0\expndtw0\kerning0
 \'b8\'c4\'ce\'aa
-\f2 \expnd0\expndtw0\kerning0
-\'a0\cb1 \expnd0\expndtw0\kerning0
+\f0 \'a0\cb1 \expnd0\expndtw0\kerning0
 \
 \cb3 \expnd0\expndtw0\kerning0
 securerandom.source=file:/dev/urandom\
-
-\f1\fs24 \cf0 \cb1 \expnd0\expndtw0\kerning0
+\cf0 \cb1 \expnd0\expndtw0\kerning0
 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
 \cf0 \expnd0\expndtw0\kerning0
 \
 20180420:	Init version that can be tested\
 \
-\'d3\'b2\'bc\'fe\'b1\'ed\'cc\'ed\'bc\'d3\'a3\'ba\
-1. \'c1\'ac\'bd\'d3\'c9\'cf\'b7\'fe\'ce\'f1\'c6\'f7\
+
+\f1 \'d3\'b2\'bc\'fe\'b1\'ed\'cc\'ed\'bc\'d3\'a3\'ba
+\f0 \
+1. 
+\f1 \'c1\'ac\'bd\'d3\'c9\'cf\'b7\'fe\'ce\'f1\'c6\'f7
+\f0 \
 2. mysql -u root -pZzyc123!\
 3. create database EMoto\
 4. use EMoto\
@@ -79,30 +94,109 @@ securerandom.source=file:/dev/urandom\
 	barcode varchar(30) unique not null,\
 	primary key (id)\
 );\
-6. insert into hwId2Barcode(hid, barcode) values(\'a1\'b0hwId1\'a1\'b1, \'a1\'b0barcode1\'a1\'b1);\
+6. insert into hwId2Barcode(hid, barcode) values(\'93hwId1\'94, \'93barcode1\'94);\
 \
-\'a3\'d7ebservice\'b2\'bf\'ca\'f0\'a3\'ba\
+
+\f1 \'a3\'d7
+\f0 ebservice
+\f1 \'b2\'bf\'ca\'f0\'a3\'ba
+\f0 \
 1. copy hibernate.cfg.xml to server tomcat_path/webapps/axis2/WEB-INF/classes\
 2. create web service .aar containing all maven dependent lib and deploy\
-3. in server set env variable \'a1\'b0CONFIG_FILE=~/config/EMoto.cfg\'a1\'b1. In EMoto.cfg set \'a1\'b0server_ip\'a1\'b1 and \'a1\'b0server_port\'a1\'b1\
+3. in server set env variable \'93CONFIG_FILE=~/config/EMoto.cfg\'94. In EMoto.cfg set \'93server_ip\'94 and \'93server_port\'94\
 \
-WebSocket\'b2\'bf\'ca\'f0\'a3\'ba\
-1. \'d3\'d2\'bc\'fc\'b5\'e3\'cf\'ee\'c4\'bfEMoto->export->Web->WAR file\'a3\'ac\'c9\'fa\'b3\'c9.war\'ce\'c4\'bc\'fe\
-2. \'bd\'ab.war\'ce\'c4\'bc\'fe\'bf\'bd\'b1\'b4\'b5\'bdtomcat/webapps\'c4\'bf\'c2\'bc\'cf\'c2\
-3. \'d4\'datomcat/conf/web.xml\'d6\'d0\'bc\'d3\'c8\'eb\'d2\'d4\'cf\'c2\'c4\'da\'c8\'dd\'a3\'ac\'b1\'ed\'ca\'be\'b8\'c3
-\fs22 \kerning1\expnd0\expndtw0 \CocoaLigature0 \'d3\'a6\'d3\'c3
-\fs24 \expnd0\expndtw0\kerning0
-\CocoaLigature1 \'d4\'datomcat\'c6\'f4\'b6\'af\'be\'cd\'b3\'f5\'ca\'bc\'bb\'af\'a1\'a3\'c8\'e7\'b9\'fb\'c3\'bb\'d3\'d0\'d5\'e2\'b8\'f6\'a3\'ac\'d4\'f2\'d6\'bb\'d3\'d0\'b5\'b1\'e4\'af\'c0\'c0\'c6\'f7\'bf\'aa\'ca\'bc\'c1\'ac\'bd\'d3websocket\'ca\'b1\'a3\'ac\'b7\'fe\'ce\'f1\'c6\'f7\'b3\'cc\'d0\'f2\'b2\'c5\'c6\'f4\'b6\'af\
+WebSocket
+\f1 \'b2\'bf\'ca\'f0\'a3\'ba
+\f0 \
+1. 
+\f1 \'d3\'d2\'bc\'fc\'b5\'e3\'cf\'ee\'c4\'bf
+\f0 EMoto->export->Web->WAR file
+\f1 \'a3\'ac\'c9\'fa\'b3\'c9
+\f0 .war
+\f1 \'ce\'c4\'bc\'fe
+\f0 \
+2. 
+\f1 \'bd\'ab
+\f0 .war
+\f1 \'ce\'c4\'bc\'fe\'bf\'bd\'b1\'b4\'b5\'bd
+\f0 tomcat/webapps
+\f1 \'c4\'bf\'c2\'bc\'cf\'c2
+\f0 \
+3. 
+\f1 \'d4\'da
+\f0 tomcat/conf/web.xml
+\f1 \'d6\'d0\'bc\'d3\'c8\'eb\'d2\'d4\'cf\'c2\'c4\'da\'c8\'dd\'a3\'ac\'b1\'ed\'ca\'be\'b8\'c3\kerning1\expnd0\expndtw0 \CocoaLigature0 \'d3\'a6\'d3\'c3\expnd0\expndtw0\kerning0
+\CocoaLigature1 \'d4\'da
+\f0 tomcat
+\f1 \'c6\'f4\'b6\'af\'be\'cd\'b3\'f5\'ca\'bc\'bb\'af\'a1\'a3\'c8\'e7\'b9\'fb\'c3\'bb\'d3\'d0\'d5\'e2\'b8\'f6\'a3\'ac\'d4\'f2\'d6\'bb\'d3\'d0\'b5\'b1\'e4\'af\'c0\'c0\'c6\'f7\'bf\'aa\'ca\'bc\'c1\'ac\'bd\'d3
+\f0 websocket
+\f1 \'ca\'b1\'a3\'ac\'b7\'fe\'ce\'f1\'c6\'f7\'b3\'cc\'d0\'f2\'b2\'c5\'c6\'f4\'b6\'af
+\f0 \
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
-
-\f3\fs22 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 <servlet>\
+\cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 <servlet>\
     <servlet-name>Example</servlet-name>\
     <servlet-class>com.emoto.server.ServerControl</servlet-class>\
     <load-on-\cf1 \cb0 startup\cf0 \cb1 >6</load-on-\cf1 \cb0 startup\cf0 \cb1 >\
 </servlet>\
 
 \f1 \'b5\'b1
-\f3 tomcat
-\f1 \'c6\'f4\'b6\'af\'ba\'f3\'a3\'acJS\'d6\'d0\'d6\'b4\'d0\'d0\'d2\'d4\'cf\'c2\'b4\'fa\'c2\'eb\'c0\'b4\'c1\'ac\'bd\'d3\'b7\'fe\'ce\'f1\'c6\'f7\'a1\'a3\'c6\'e4\'d6\'d0EMoto\'ca\'c7\'cf\'ee\'c4\'bf\'c3\'fb\'a3\'acEMotoEntry\'ca\'c7websocket\'c8\'eb\'bf\'da\'b5\'c4ServerEndpoint\'b5\'c4\'d6\'b5(\'a1\'b0/EMotoEntry\'a1\'b1)
-\f3 \
-webSocket = new WebSocket("ws://127.0.0.1:8080/EMoto/EMotoEntry");}
+\f0 tomcat
+\f1 \'c6\'f4\'b6\'af\'ba\'f3\'a3\'ac
+\f0 JS
+\f1 \'d6\'d0\'d6\'b4\'d0\'d0\'d2\'d4\'cf\'c2\'b4\'fa\'c2\'eb\'c0\'b4\'c1\'ac\'bd\'d3\'b7\'fe\'ce\'f1\'c6\'f7\'a1\'a3\'c6\'e4\'d6\'d0
+\f0 EMoto
+\f1 \'ca\'c7\'cf\'ee\'c4\'bf\'c3\'fb\'a3\'ac
+\f0 EMotoEntry
+\f1 \'ca\'c7
+\f0 websocket
+\f1 \'c8\'eb\'bf\'da\'b5\'c4
+\f0 ServerEndpoint
+\f1 \'b5\'c4\'d6\'b5
+\f0 (\'93/EMotoEntry\'94)\
+webSocket = new WebSocket("ws://127.0.0.1:8080/EMoto/EMotoEntry");\
+webSocket = new WebSocket("wss://domain.com:8443/EMoto/EMotoEntry");\
+\
+Tomcat
+\f1 \'c6\'f4\'d3\'c3
+\f0 https/wss:\
+1. 
+\f1 \'d3\'c3
+\f0 \expnd0\expndtw0\kerning0
+\CocoaLigature1 keytool -genkey -alias tomcat -keyalg RSA -keystore EMoto.keystore  
+\f1 \'c9\'fa\'b3\'c9
+\f0 .keystore
+\f1 \'ce\'c4\'bc\'fe
+\f0 \
+2. 
+\f1 \'d4\'da
+\f0 tomcat
+\f1 \'b5\'c4
+\f0 conf/server.xml
+\f1 \'bc\'d3\'c8\'eb\'d2\'d4\'cf\'c2\'c4\'da\'c8\'dd
+\f0 \
+\pard\pardeftab720
+\cf0 \expnd0\expndtw0\kerning0
+    Connector SSLEnabled="true" acceptCount="100" clientAuth="false"\
+    disableUploadTimeout="true" enableLookups="false" maxThreads="25"\
+    port="8443" keystoreFile="/Users/loiane/.keystore" keystorePass="password"\
+    protocol="org.apache.coyote.http11.Http11NioProtocol" scheme="https"\
+    secure="true" sslProtocol="TLS" />\
+3.
+\f1 \'d6\'d8\'c6\'f4
+\f0 tomcat\
+4.
+\f1 \'d2\'aa\'c6\'f4\'d3\'c3
+\f0 443
+\f1 \'b6\'f8\'b2\'bb\'ca\'c7
+\f0 8443
+\f1 \'a3\'ac\'bd\'ab
+\f0 service.xml
+\f1 \'c0\'ef\'cb\'f9\'d3\'d0\'b5\'c4
+\f0 8443
+\f1 \'b8\'c4\'b3\'c9
+\f0 443
+\f1 \'a1\'a3\'d5\'e2\'d1\'f9\'d4\'da\'c1\'ac
+\f0 https
+\f1 \'ca\'b1\'b2\'bb\'b1\'d8\'ca\'e4\'c8\'eb\'b6\'cb\'bf\'da
+\f0 8443,
+\f1 \'d5\'e2\'ca\'c7\'ce\'a2\'d0\'c5\'b2\'bb\'c4\'dc\'b4\'f8\'b6\'cb\'bf\'da\'b5\'c4\'d2\'aa\'c7\'f3}

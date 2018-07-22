@@ -44,7 +44,7 @@ public class Client {
 		ByteBuffer buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
 		client.write(buffer);
 		readAndPrintMsg(buffer);
-		
+				
 		//to server - connected request
 		ClientBikeConnectedReq clientBikeConnectedReq = new ClientBikeConnectedReq(1, (byte)1, 1, "ab");
 		cmd[0] = clientBikeConnectedReq;
@@ -68,7 +68,7 @@ public class Client {
 		readAndPrintMsg(buffer);
 		
 		//to server - charging status report
-		cmd[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CONNECTED, ErrorCode.ACT_SUCCEDED,
+		cmd[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CHARGING, ErrorCode.ACT_SUCCEDED,
 				200, (byte)11, (short)12, (short)13, (byte)14, ChargeSource.SERVER_CHARGING, "", "ab");
 		cmd[1] = null;
 		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);
@@ -76,7 +76,7 @@ public class Client {
 		readAndPrintMsg(buffer);
 		
 		//to server - charging status report
-		cmd[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CONNECTED, ErrorCode.ACT_SUCCEDED,
+		cmd[0] = new ClientChargingStatusReq(1L, 1L, (byte)1, ChargeStatus.CHARGING, ErrorCode.ACT_SUCCEDED,
 				202, (byte)12, (short)14, (short)15, (byte)12, ChargeSource.SERVER_CHARGING, "", "ab");
 		cmd[1] = null;
 		buffer = CmdFactory.encCommand(cmd, Header.CLIENT_STX);

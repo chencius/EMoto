@@ -11,7 +11,6 @@ import com.emoto.protocol.command.ClientConnectSucceedResp;
 import com.emoto.protocol.command.CmdBase;
 import com.emoto.protocol.command.ServerStartChargingResp;
 import com.emoto.protocol.fields.ErrorCode;
-import com.emoto.server.Server;
 import com.emoto.websocket.IValueReturned;
 import com.emoto.websocket.ValueReturned;
 
@@ -33,20 +32,15 @@ public class Connected extends State {
 			result.setPortId(cp.getPortId());
 			
 			ServerStartChargingResp resp = (ServerStartChargingResp)cmd;
-			if (resp.getSessionId() == cp.getSessionId() ) {
-				if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED)
-				{
-					result.setStatus(true);
-				} else {
-					result.setStatus(false);
-					result.setReason("Get status " + resp.getErrorCode() + " under state " + this);
-					logger.log(Level.WARNING, "Get status " + resp.getErrorCode() + " under state " + this);
-				}
+			if (resp.getErrorCode() == ErrorCode.ACT_SUCCEDED)
+			{
+				result.setStatus(true);
 			} else {
 				result.setStatus(false);
-				logger.log(Level.WARNING, "Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + resp.getSessionId());
-				result.setReason("Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + resp.getSessionId());
+				result.setReason("Get status " + resp.getErrorCode() + " under state " + this);
+				logger.log(Level.WARNING, "Get status " + resp.getErrorCode() + " under state " + this);
 			}
+
 			cp.setValueReturned(result);
 			return null;
 		}
@@ -56,18 +50,13 @@ public class Connected extends State {
 			ClientConnectSucceedReq req = (ClientConnectSucceedReq)cmd;
 			
 			CmdBase[] resp = null;
-			if (req.getSessionId() == cp.getSessionId()) {
-				resp = new CmdBase[1];
-				resp[0] = new ClientConnectSucceedResp(
-						req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
-				logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.chargingState});
-				result.setStatus(true);
-				cp.setState(cp.chargingState);
-			} else {
-				logger.log(Level.WARNING, "Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + req.getSessionId());
-				result.setStatus(true);
-				result.setReason("Current sessionId = " + cp.getSessionId() + ".But received sessionId = " + req.getSessionId());
-			}
+			resp = new CmdBase[1];
+			resp[0] = new ClientConnectSucceedResp(
+					req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
+			logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.chargingState});
+			result.setStatus(true);
+			cp.setState(cp.chargingState);
+			
 			cp.setValueReturned(result);
 			cp.getLock().countDown();
 			return resp;

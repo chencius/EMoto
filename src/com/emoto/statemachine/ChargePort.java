@@ -28,8 +28,7 @@ public class ChargePort {
 	private CountDownLatch lock;
 	
 	private Timer timer;
-	private final int SECONDS = 700;
-	private TimerTask timerTask;
+	private final int SECONDS = 70;
 	
 	private boolean active;
 	private Object callback;
@@ -51,9 +50,6 @@ public class ChargePort {
 		
 		this.lock = null;
 		this.valueReturned = null;
-		
-		this.timer = new Timer();
-		this.timerTask = new ChargePointTimerTask();
 	}
 
 	public long getChargeId() {
@@ -95,23 +91,19 @@ public class ChargePort {
 	public CmdBase[] execCmd(CmdBase cmd) {
 		logger.log(Level.INFO, "Execute {0} under state of {1}", new Object[]{cmd, this.state});
 		
-		if (!getActive()) {
-			logger.log(Level.WARNING, "Receive {0} while port is inActive", cmd);
-			return null;
-		}
-		
 		switch(cmd.getInstruction()) {
 		case CLIENT_IDLE_STATUS:
 		{
 			ClientIdleStatusReq req = (ClientIdleStatusReq)cmd;
-			if (state != this.onlineState) {
-				logger.log(Level.WARNING, "Receive {0} but chargeId {1} portId {2} is not idle",
-						new Object[]{req, req.getChargeId(), req.getChargePortId()});
-				return null;
-			}
 			
 			if (req.getChargeId() == this.chargeId &&
 				req.getChargePortId() == this.portId) {
+				if (!getActive()) {
+					logger.log(Level.INFO, "Receive {0} while chargePoint {1} portId {2} is inactive. Activate it",
+							new Object[]{req, req.getChargeId(), req.getChargePortId()});
+					active = true;
+				}
+				
 				CmdBase[] resp = new CmdBase[1];
 				resp[0] = new ClientIdleStatusResp(req.getChargeId(), ErrorCode.ACT_SUCCEDED);
 				restartTimer();
@@ -151,18 +143,28 @@ public class ChargePort {
 		return "chargeId " + this.chargeId + " portId " + this.portId;
 	}
 
+	public void stopTimer() {
+		if (timer != null) {
+			timer.cancel();
+			timer = null;
+		}
+	}
+	
 	public void restartTimer() {
-		timer.cancel();
+		if (timer != null) {
+			timer.cancel();
+			timer = null;
+		}
 		timer = new Timer();
-		timer.schedule(timerTask, SECONDS*1000);
+		timer.schedule(new ChargePointTimerTask(), SECONDS*1000);
 	}
 	
 	private class ChargePointTimerTask extends TimerTask {
 		@Override
 		public void run() {
 			//server.chargePoints.remove(chargeId);
-			logger.log(Level.WARNING, "ChargePort hasn't received ClientIdleStatus for {0} seconds. Bring it offline",
-					SECONDS);
+			logger.log(Level.WARNING, "chargeId {0} portId {1} hasn not received ClientIdleStatus for {2} seconds. Bring it offline",
+					new Object[]{chargeId, portId, (int)SECONDS});
 			active = false;
 		}
 	}

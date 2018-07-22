@@ -11,11 +11,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.emoto.statemachine.ChargePoint;
-
 import com.emoto.network.tcp.TcpServer;
 import com.emoto.persistent.HWDBManagerFactory;
 import com.emoto.persistent.data.HWId2Barcode;
+import com.emoto.statemachine.ChargePoint;
 
 public class Server implements Runnable {
 	private static final String systemVariable = "CONFIG_FILE";

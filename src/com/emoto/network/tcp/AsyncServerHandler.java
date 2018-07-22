@@ -144,13 +144,21 @@ public class AsyncServerHandler {
 								}
 							}
 							if (allInactive != true) {
-								logger.log(Level.WARNING, "Receive {0} when ports on chargeId {1} are not all inactive",
+								logger.log(Level.INFO, "Receive {0} when ports on chargeId {1} are not all inactive",
 										new Object[]{req, chargeId});
-								return;
+							} else {
+								logger.log(Level.INFO, "Receive {0} when ports on chargeId {1} are all inactive",
+										new Object[]{req, chargeId});
 							}
+							
+							server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
+							cp.setCallback(callback);
+							logger.log(Level.INFO, "Receive registration for chargeId(reactivate) {0} with {1}",
+								new Object[]{chargePointInfo.chargeId, req});
 						}
 					} else {
-						logger.log(Level.WARNING, "chargePoint loginReq failed with " + req);
+						logger.log(Level.WARNING, "chargePoint loginReq failed due to no corresponding hwId "
+									+ req.getHwId() + " with " + req);
 						return;
 					}
 				} else {

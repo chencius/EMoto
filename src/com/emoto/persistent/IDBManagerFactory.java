@@ -3,6 +3,7 @@ package com.emoto.persistent;
 import java.util.List;
 
 import org.hibernate.SessionFactory;
+
 import com.emoto.persistent.data.IDBElement;
 
 public interface IDBManagerFactory<T extends IDBElement> {

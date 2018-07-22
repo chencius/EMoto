@@ -1,12 +1,9 @@
 package com.emoto.network.tcp;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import com.emoto.server.Server;
-import com.emoto.statemachine.ChargePoint;
-import com.emoto.statemachine.State;
 
 public class TcpServer {
 	private static AsyncServerHandler serverHandler;
