@@ -68,7 +68,8 @@ securerandom.source=file:/dev/random\cb1 \expnd0\expndtw0\kerning0
 
 \f1 \cb3 \expnd0\expndtw0\kerning0
 \'b8\'c4\'ce\'aa
-\f0 \'a0\cb1 \expnd0\expndtw0\kerning0
+\f0 \expnd0\expndtw0\kerning0
+\'a0\cb1 \expnd0\expndtw0\kerning0
 \
 \cb3 \expnd0\expndtw0\kerning0
 securerandom.source=file:/dev/urandom\
@@ -95,6 +96,17 @@ securerandom.source=file:/dev/urandom\
 	primary key (id)\
 );\
 6. insert into hwId2Barcode(hid, barcode) values(\'93hwId1\'94, \'93barcode1\'94);\
+\
+
+\f1 \'b3\'e4\'b5\'e7\'bc\'c7\'c2\'bc\'b1\'ed\'bd\'a8\'c1\'a2\'a3\'ba\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 mysql> create table chargeRecord( id int not null auto_increment, hwId varchar(30) unique not null, chargeId bigint not null, portId tinyint not null, meter float not null, voltage float not null, currency float not null, sessionId bigint not null, startTime timestamp DEFAULT CURRENT_TIMESTAMP, endTime timestamp DEFAULT CURRENT_TIMESTAMP, effectiveTime timestamp DEFAULT CURRENT_TIMESTAMP, primary key(id) );
+\f1 \expnd0\expndtw0\kerning0
+\CocoaLigature1 \
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
+
+\f0 \cf0 \expnd0\expndtw0\kerning0
 \
 
 \f1 \'a3\'d7
@@ -182,21 +194,38 @@ Tomcat
     protocol="org.apache.coyote.http11.Http11NioProtocol" scheme="https"\
     secure="true" sslProtocol="TLS" />\
 3.
-\f1 \'d6\'d8\'c6\'f4
-\f0 tomcat\
+\f1 \expnd0\expndtw0\kerning0
+\'d6\'d8\'c6\'f4
+\f0 \expnd0\expndtw0\kerning0
+tomcat\
 4.
-\f1 \'d2\'aa\'c6\'f4\'d3\'c3
-\f0 443
-\f1 \'b6\'f8\'b2\'bb\'ca\'c7
-\f0 8443
-\f1 \'a3\'ac\'bd\'ab
-\f0 service.xml
-\f1 \'c0\'ef\'cb\'f9\'d3\'d0\'b5\'c4
-\f0 8443
-\f1 \'b8\'c4\'b3\'c9
-\f0 443
-\f1 \'a1\'a3\'d5\'e2\'d1\'f9\'d4\'da\'c1\'ac
-\f0 https
-\f1 \'ca\'b1\'b2\'bb\'b1\'d8\'ca\'e4\'c8\'eb\'b6\'cb\'bf\'da
-\f0 8443,
-\f1 \'d5\'e2\'ca\'c7\'ce\'a2\'d0\'c5\'b2\'bb\'c4\'dc\'b4\'f8\'b6\'cb\'bf\'da\'b5\'c4\'d2\'aa\'c7\'f3}
+\f1 \expnd0\expndtw0\kerning0
+\'d2\'aa\'c6\'f4\'d3\'c3
+\f0 \expnd0\expndtw0\kerning0
+443
+\f1 \expnd0\expndtw0\kerning0
+\'b6\'f8\'b2\'bb\'ca\'c7
+\f0 \expnd0\expndtw0\kerning0
+8443
+\f1 \expnd0\expndtw0\kerning0
+\'a3\'ac\'bd\'ab
+\f0 \expnd0\expndtw0\kerning0
+service.xml
+\f1 \expnd0\expndtw0\kerning0
+\'c0\'ef\'cb\'f9\'d3\'d0\'b5\'c4
+\f0 \expnd0\expndtw0\kerning0
+8443
+\f1 \expnd0\expndtw0\kerning0
+\'b8\'c4\'b3\'c9
+\f0 \expnd0\expndtw0\kerning0
+443
+\f1 \expnd0\expndtw0\kerning0
+\'a1\'a3\'d5\'e2\'d1\'f9\'d4\'da\'c1\'ac
+\f0 \expnd0\expndtw0\kerning0
+https
+\f1 \expnd0\expndtw0\kerning0
+\'ca\'b1\'b2\'bb\'b1\'d8\'ca\'e4\'c8\'eb\'b6\'cb\'bf\'da
+\f0 \expnd0\expndtw0\kerning0
+8443,
+\f1 \expnd0\expndtw0\kerning0
+\'d5\'e2\'ca\'c7\'ce\'a2\'d0\'c5\'b2\'bb\'c4\'dc\'b4\'f8\'b6\'cb\'bf\'da\'b5\'c4\'d2\'aa\'c7\'f3}

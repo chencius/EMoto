@@ -1,8 +1,10 @@
 package com.emoto.statemachine;
 
+import java.sql.Timestamp;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.emoto.persistent.data.ChargeRecord;
 import com.emoto.protocol.command.ClientBikeDisconnectedReq;
 import com.emoto.protocol.command.ClientBikeDisconnectedResp;
 import com.emoto.protocol.command.ClientChargingFaultReq;
@@ -20,6 +22,13 @@ public class Connected extends State {
 	
 	public Connected(ChargePort cp) {
 		this.cp = cp;
+	}
+	
+	private void startChargingRecord() {
+		cp.chargeRecord = new ChargeRecord();
+		cp.chargeRecord.setHwId(cp.getHWId());
+		cp.chargeRecord.setPortId(cp.getPortId());
+		cp.chargeRecord.setStartTime(new Timestamp(System.currentTimeMillis()));
 	}
 	
 	@Override
@@ -56,6 +65,8 @@ public class Connected extends State {
 			logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.chargingState});
 			result.setStatus(true);
 			cp.setState(cp.chargingState);
+			
+			startChargingRecord();
 			
 			cp.setValueReturned(result);
 			cp.getLock().countDown();

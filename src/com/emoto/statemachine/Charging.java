@@ -1,5 +1,6 @@
 package com.emoto.statemachine;
 
+import java.sql.Timestamp;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +24,13 @@ public class Charging extends State {
 		this.cp = cp;
 	}
 
+	private void updateChargeRecord(ClientChargingStatusReq status) {
+		cp.chargeRecord.setMeter(status.getMeterValue());
+		cp.chargeRecord.setVoltage(status.getChargingVoltage());
+		cp.chargeRecord.setCurrency(status.getChargingCurrency());
+		cp.chargeRecord.setSessionId(status.getSessionId());
+	}
+	
 	@Override
 	public CmdBase[] execCmd(CmdBase cmd) {
 		switch(cmd.getInstruction()) {
@@ -32,6 +40,8 @@ public class Charging extends State {
 			CmdBase[] resp = new CmdBase[1];
 			resp[0] = new ClientChargingStatusResp(
 					req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
+			
+			updateChargeRecord(req);
 			
 			IValueReturned result = new ValueReturned();
 			result.setChargeId(cp.getChargeId());
@@ -51,6 +61,9 @@ public class Charging extends State {
 		{
 			IValueReturned result = new ValueReturned();
 			ClientDisconnectSucceedReq req = (ClientDisconnectSucceedReq)cmd;
+			
+			cp.chargeRecord.setEndTime(new Timestamp(System.currentTimeMillis()));
+			
 			CmdBase[] resp = new CmdBase[1];
 			resp[0] = new ClientDisconnectSucceedResp(
 					req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);

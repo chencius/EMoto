@@ -6,6 +6,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.emoto.persistent.data.ChargeRecord;
 import com.emoto.protocol.command.ClientIdleStatusReq;
 import com.emoto.protocol.command.ClientIdleStatusResp;
 import com.emoto.protocol.command.CmdBase;
@@ -24,6 +25,7 @@ public class ChargePort {
 	
 	private long chargeId;
 	private byte portId;
+	private String hwId;
 	
 	private CountDownLatch lock;
 	
@@ -33,11 +35,12 @@ public class ChargePort {
 	private boolean active;
 	private Object callback;
 	
+	public ChargeRecord chargeRecord;
 	private IValueReturned valueReturned;
 	
 	private static Logger logger = Logger.getLogger(ChargePort.class.getName());
 	
-	public ChargePort(Server server, long chargeId, byte portId) {
+	public ChargePort(Server server, long chargeId, byte portId, String hwId) {
 		this.server = server;
 		this.onlineState = new Online(this);
 		this.connectedState = new Connected(this);
@@ -47,6 +50,7 @@ public class ChargePort {
 		
 		this.chargeId = chargeId;
 		this.portId = portId;
+		this.hwId = hwId;
 		
 		this.lock = null;
 		this.valueReturned = null;
@@ -68,6 +72,10 @@ public class ChargePort {
 		return state;
 	}
 
+	public String getHWId() {
+		return this.hwId;
+	}
+	
 	public void setState(State state) {
 		this.state = state;
 	}

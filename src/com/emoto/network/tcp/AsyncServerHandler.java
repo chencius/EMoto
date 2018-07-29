@@ -130,20 +130,13 @@ public class AsyncServerHandler {
 					if (chargePointInfo != null) {
 						cp = server.chargePoints.get(chargePointInfo.chargeId);
 						if (cp == null) {
-							server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
+							server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId, req.getHwId()));
 							cp.setCallback(callback);
 							logger.log(Level.INFO, "Receive registration for chargeId {0} with {1}",
 								new Object[]{chargePointInfo.chargeId, req});
 						} else {
-							boolean allInactive = true;
-							ChargePort[] ports = cp.getPorts();
-							for (int i = 0; i<cp.PORT_NUM; i++) {
-								if (ports[i].getActive() == true) {
-									allInactive = false;
-									break;
-								}
-							}
-							if (allInactive != true) {
+							boolean CPInactive = cp.ChargePointInactive();
+							if (CPInactive != true) {
 								logger.log(Level.INFO, "Receive {0} when ports on chargeId {1} are not all inactive",
 										new Object[]{req, chargeId});
 							} else {
@@ -151,8 +144,9 @@ public class AsyncServerHandler {
 										new Object[]{req, chargeId});
 							}
 							
-							server.chargePoints.put(chargePointInfo.chargeId, cp = new ChargePoint(server, channel, chargePointInfo.chargeId));
-							cp.setCallback(callback);
+							if (cp.getChannel() != channel) {
+								cp.setChannel(channel);
+							}
 							logger.log(Level.INFO, "Receive registration for chargeId(reactivate) {0} with {1}",
 								new Object[]{chargePointInfo.chargeId, req});
 						}

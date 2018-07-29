@@ -18,6 +18,7 @@ public class ChargePoint {
 	private ChargePort[] ports;
 	private Server server;
 	private long chargeId;
+	private String hwId;
 	private AsynchronousSocketChannel channel;
 	private Object callback;
 	
@@ -25,19 +26,29 @@ public class ChargePoint {
 	
 	private static Logger logger = Logger.getLogger(ChargePoint.class.getName());
 	
-	public ChargePoint(Server server, AsynchronousSocketChannel channel, long chargeId) {
+	public ChargePoint(Server server, AsynchronousSocketChannel channel, long chargeId, String hwId) {
 		this.server = server;
 		this.channel = channel;
 		this.chargeId = chargeId;
+		this.hwId = hwId;
 		ports = new ChargePort[PORT_NUM];
 		for (int i=0; i<ports.length; i++) {
-			ports[i] = new ChargePort(server, chargeId, (byte)(i+1));
+			ports[i] = new ChargePort(server, chargeId, (byte)(i+1), hwId);
 			ports[i].setCallback(callback);
 		}
 	}
 	
 	public ChargePort[] getPorts() {
 		return this.ports;
+	}
+	
+	public boolean ChargePointInactive() {
+		for (int i = 0; i<PORT_NUM; i++) {
+			if (ports[i].getActive() == true) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public IValueReturned getValueReturned() {
@@ -50,6 +61,10 @@ public class ChargePoint {
 	
 	public AsynchronousSocketChannel getChannel() {
 		return this.channel;
+	}
+	
+	public void setChannel(AsynchronousSocketChannel channel) {
+		this.channel = channel;
 	}
 	
 	public CmdBase[] execCmd(CmdBase cmd) {
