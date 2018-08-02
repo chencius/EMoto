@@ -101,7 +101,7 @@ securerandom.source=file:/dev/urandom\
 \f1 \'b3\'e4\'b5\'e7\'bc\'c7\'c2\'bc\'b1\'ed\'bd\'a8\'c1\'a2\'a3\'ba\
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
-\f0 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 mysql> create table chargeRecord( id int not null auto_increment, hwId varchar(30) unique not null, chargeId bigint not null, portId tinyint not null, meter float not null, voltage float not null, currency float not null, sessionId bigint not null, startTime timestamp DEFAULT CURRENT_TIMESTAMP, endTime timestamp DEFAULT CURRENT_TIMESTAMP, effectiveTime timestamp DEFAULT CURRENT_TIMESTAMP, primary key(id) );
+\f0 \cf0 \kerning1\expnd0\expndtw0 \CocoaLigature0 mysql> create table chargeRecord( id int not null auto_increment, hwId varchar(30) not null, chargeId bigint not null, portId tinyint not null, meter float not null, voltage float not null, currency float not null, sessionId bigint not null, startTime timestamp DEFAULT CURRENT_TIMESTAMP, endTime timestamp DEFAULT CURRENT_TIMESTAMP, effectiveTime timestamp DEFAULT CURRENT_TIMESTAMP, primary key(id) );
 \f1 \expnd0\expndtw0\kerning0
 \CocoaLigature1 \
 \pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural
@@ -150,8 +150,9 @@ WebSocket
     <servlet-class>com.emoto.server.ServerControl</servlet-class>\
     <load-on-\cf1 \cb0 startup\cf0 \cb1 >6</load-on-\cf1 \cb0 startup\cf0 \cb1 >\
 </servlet>\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
 
-\f1 \'b5\'b1
+\f1 \cf0 \'b5\'b1
 \f0 tomcat
 \f1 \'c6\'f4\'b6\'af\'ba\'f3\'a3\'ac
 \f0 JS
@@ -175,17 +176,27 @@ Tomcat
 \f1 \'d3\'c3
 \f0 \expnd0\expndtw0\kerning0
 \CocoaLigature1 keytool -genkey -alias tomcat -keyalg RSA -keystore EMoto.keystore  
-\f1 \'c9\'fa\'b3\'c9
-\f0 .keystore
-\f1 \'ce\'c4\'bc\'fe
-\f0 \
+\f1 \expnd0\expndtw0\kerning0
+\'c9\'fa\'b3\'c9
+\f0 \expnd0\expndtw0\kerning0
+.keystore
+\f1 \expnd0\expndtw0\kerning0
+\'ce\'c4\'bc\'fe
+\f0 \expnd0\expndtw0\kerning0
+\
 2. 
-\f1 \'d4\'da
-\f0 tomcat
-\f1 \'b5\'c4
-\f0 conf/server.xml
-\f1 \'bc\'d3\'c8\'eb\'d2\'d4\'cf\'c2\'c4\'da\'c8\'dd
-\f0 \
+\f1 \expnd0\expndtw0\kerning0
+\'d4\'da
+\f0 \expnd0\expndtw0\kerning0
+tomcat
+\f1 \expnd0\expndtw0\kerning0
+\'b5\'c4
+\f0 \expnd0\expndtw0\kerning0
+conf/server.xml
+\f1 \expnd0\expndtw0\kerning0
+\'bc\'d3\'c8\'eb\'d2\'d4\'cf\'c2\'c4\'da\'c8\'dd
+\f0 \expnd0\expndtw0\kerning0
+\
 \pard\pardeftab720
 \cf0 \expnd0\expndtw0\kerning0
     Connector SSLEnabled="true" acceptCount="100" clientAuth="false"\

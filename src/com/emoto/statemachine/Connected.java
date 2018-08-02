@@ -27,6 +27,7 @@ public class Connected extends State {
 	private void startChargingRecord() {
 		cp.chargeRecord = new ChargeRecord();
 		cp.chargeRecord.setHwId(cp.getHWId());
+		cp.chargeRecord.setChargeId(cp.getChargeId());
 		cp.chargeRecord.setPortId(cp.getPortId());
 		cp.chargeRecord.setStartTime(new Timestamp(System.currentTimeMillis()));
 	}

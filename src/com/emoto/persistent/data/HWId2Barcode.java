@@ -45,6 +45,12 @@ public class HWId2Barcode implements IDBElement {
 		this.barcode = barcode;
 	}
 	
+	public void copyFrom(IDBElement e) {
+		HWId2Barcode elem = (HWId2Barcode)e;
+		
+		this.id = elem.getId();
+	}
+	
 	public String toString() {
 		return "Id = " + id + " hwId = " + hwId + " barcode= " + barcode;
 	}

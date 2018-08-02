@@ -13,30 +13,21 @@ import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.exception.ConstraintViolationException;
 
+import com.emoto.persistent.data.ChargeRecord;
 import com.emoto.persistent.data.HWId2Barcode;
+import com.emoto.persistent.data.IDBElement;
 
-public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
+public class DBManagerFactory<T extends IDBElement, K> implements IDBManagerFactory<T, K> {
+	private static Logger logger = Logger.getLogger(DBManagerFactory.class.getName());
 	public SessionFactory factory = null;
-	private static Logger logger = Logger.getLogger(HWDBManagerFactory.class.getName());
 	
-	@Override
-	public SessionFactory getSessionFactory() {
-		if (factory != null) {
-			return factory;
-		} else {
-			synchronized(this.getClass()) {
-				if (factory == null) {
-					Configuration config = new Configuration();
-					factory = config.configure().buildSessionFactory();
-				}
-			}
-			return factory;
-		}
+	public DBManagerFactory(SessionFactory factory) {
+		this.factory = factory;
 	}
 	
 	@Override
-	public Integer addElement(HWId2Barcode elem) {
-		Session session = getSessionFactory().openSession();
+	public Integer addElement(T elem) {
+		Session session = factory.openSession();
 		Transaction tx = null;
 		Integer id = null;
 		
@@ -63,8 +54,8 @@ public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
 	}
 	
 	@Override
-	public List<HWId2Barcode> listElement() {
-		Session session = getSessionFactory().openSession();
+	public List<T> listElement() {
+		Session session = factory.openSession();
 		Transaction tx = null;
 		
 		List elems = null;
@@ -84,7 +75,7 @@ public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
 	}
 	
 	@Override
-	public List<HWId2Barcode> getElement(Object index) {
+	public List<T> getElement(K index) {
 		if (index instanceof String) {
 			
 		} else {
@@ -94,7 +85,7 @@ public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
 		
 		String hwId = (String)index;
 		List elems = null;
-		Session session = getSessionFactory().openSession();
+		Session session = factory.openSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
@@ -113,16 +104,25 @@ public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
 	}
 	
 	@Override
-	public void updateElement(HWId2Barcode elem) {
-		Session session = getSessionFactory().openSession();
+	public void updateElement(T elem) {
+		Session session = factory.openSession();
 		Transaction tx = null;
 		
-		HWId2Barcode elemOut = null;
+		T elemOut = null;
 		try {
 			tx = session.beginTransaction();
-		    elemOut = (HWId2Barcode)session.get(HWId2Barcode.class, elem.getId());
-			elemOut.setBarcode(elem.getBarcode());
-			elemOut.setHwId(elem.getHwId());
+		    elemOut = (T)session.get(elem.getClass(), elem.getId());
+		    elemOut.copyFrom(elem);
+//			elemOut.setHwId(elem.getHwId());
+//			elemOut.setChargeId(elem.getChargeId());
+//			elemOut.setPortId(elem.getPortId());
+//			elemOut.setMeter(elem.getMeter());
+//			elemOut.setVoltage(elem.getVoltage());
+//			elemOut.setCurrency(elem.getCurrency());
+//			elemOut.setSessionId(elem.getSessionId());
+//			elemOut.setStartTime(elem.getStartTime());
+//			elemOut.setEndTime(elem.getEndTime());
+//			elemOut.setEffectiveTime(elem.getEffectiveTime());
 		    tx.commit();
 		} catch (HibernateException e) {
 			if (tx != null) {
@@ -135,7 +135,7 @@ public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
 	}
 	
 	@Override
-	public void deleteElement(Object index) {
+	public void deleteElement(K index) {
 		if (index instanceof String) {
 			
 		} else {
@@ -143,7 +143,7 @@ public class HWDBManagerFactory implements IDBManagerFactory<HWId2Barcode> {
 			return;
 		}
 		String hwId = (String)index;
-		Session session = getSessionFactory().openSession();
+		Session session = factory.openSession();
 		Transaction tx = null;
 		
 		try {

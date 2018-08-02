@@ -31,6 +31,11 @@ public class Charging extends State {
 		cp.chargeRecord.setSessionId(status.getSessionId());
 	}
 	
+	private void completeChargeRecord() {
+		cp.chargeRecord.setEndTime(new Timestamp(System.currentTimeMillis()));
+		cp.getServer().recordFactory.addElement(cp.chargeRecord);
+	}
+	
 	@Override
 	public CmdBase[] execCmd(CmdBase cmd) {
 		switch(cmd.getInstruction()) {
@@ -62,13 +67,13 @@ public class Charging extends State {
 			IValueReturned result = new ValueReturned();
 			ClientDisconnectSucceedReq req = (ClientDisconnectSucceedReq)cmd;
 			
-			cp.chargeRecord.setEndTime(new Timestamp(System.currentTimeMillis()));
-			
 			CmdBase[] resp = new CmdBase[1];
 			resp[0] = new ClientDisconnectSucceedResp(
 					req.getChargeId(), req.getSessionId(), req.getChargePortId(), ErrorCode.ACT_SUCCEDED);
 			logger.log(Level.INFO, "Transit from state {0} to state {1}", new Object[]{this, cp.connectedState});
 			cp.setState(cp.connectedState);
+			
+			completeChargeRecord();
 			
 			result.setStatus(true);
 			cp.setValueReturned(result);

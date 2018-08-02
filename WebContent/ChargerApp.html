@@ -34,11 +34,11 @@
             <span id="FinishTimeId"></span>
         </p>
         <script type="text/javascript">
-        	var webSocket = new WebSocket("ws://39.108.6.246:8080/EMoto/EMotoEntry");
+        	//var webSocket = new WebSocket("ws://39.108.6.246:8080/EMoto/EMotoEntry");
         	//var webSocket = new WebSocket("wss://39.108.6.246:8443/EMoto/EMotoEntry");
         	//var webSocket = new WebSocket("ws://127.0.0.1:8080/WebSocket/EMotoEntry");
         	//var webSocket = new WebSocket("wss://127.0.0.1:8443/EMoto/EMotoEntry");
-        	//var webSocket = new WebSocket("ws://127.0.0.1:8080/EMoto/EMotoEntry");
+        	var webSocket = new WebSocket("ws://127.0.0.1:8080/EMoto/EMotoEntry");
         	function SendData(func, chargeId, portId) {
         		this.func = func;
         		this.hwId = chargeId;

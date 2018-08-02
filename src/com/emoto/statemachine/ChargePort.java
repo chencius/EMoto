@@ -30,7 +30,7 @@ public class ChargePort {
 	private CountDownLatch lock;
 	
 	private Timer timer;
-	private final int SECONDS = 70;
+	private final int SECONDS = 700;
 	
 	private boolean active;
 	private Object callback;

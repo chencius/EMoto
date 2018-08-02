@@ -10,7 +10,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "chargeRecord")
-public class ChargeRecord {
+public class ChargeRecord implements IDBElement {
 	@Id
 	@GeneratedValue
 	@Column(name = "id")
@@ -46,6 +46,7 @@ public class ChargeRecord {
 	@Column(name = "effectiveTime")
 	private Timestamp effectiveTime;
 
+	@Override
 	public int getId() {
 		return id;
 	}
@@ -132,6 +133,21 @@ public class ChargeRecord {
 
 	public void setEffectiveTime(Timestamp effectiveTime) {
 		this.effectiveTime = effectiveTime;
+	}
+	
+	public void copyFrom(IDBElement e) {
+		ChargeRecord elem = (ChargeRecord)e;
+		this.id = elem.getId();
+		this.hwId = elem.getHwId();
+		this.chargeId = elem.getChargeId();
+		this.portId = elem.getPortId();
+		this.meter = elem.getMeter();
+		this.voltage = elem.getVoltage();
+		this.currency = elem.getCurrency();
+		this.sessionId = elem.getSessionId();
+		this.startTime = elem.getStartTime();
+		this.endTime = elem.getEndTime();
+		this.effectiveTime = elem.getEffectiveTime();
 	}
 	
 	public String toString() {

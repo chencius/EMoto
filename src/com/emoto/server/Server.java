@@ -12,7 +12,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.emoto.network.tcp.TcpServer;
-import com.emoto.persistent.HWDBManagerFactory;
+import com.emoto.persistent.DBManagerFactory;
+import com.emoto.persistent.DBSessionFactory;
+import com.emoto.persistent.data.ChargeRecord;
 import com.emoto.persistent.data.HWId2Barcode;
 import com.emoto.statemachine.ChargePoint;
 
@@ -24,6 +26,7 @@ public class Server implements Runnable {
 	public Map<String, HWMapping> hwId2ChargePoint = new ConcurrentHashMap<>();
 	public volatile AtomicLong sessionId = new AtomicLong(0);
 	public volatile AtomicLong chargePointId = new AtomicLong(0);
+	public DBManagerFactory<ChargeRecord, String> recordFactory;
 	
 	public Object callback;
 	
@@ -52,8 +55,9 @@ public class Server implements Runnable {
 	}
 	
 	private void loadHWInfo() {
-		HWDBManagerFactory factory = new HWDBManagerFactory();
-		List<HWId2Barcode> HWList = factory.listElement(); 
+		DBManagerFactory<HWId2Barcode, String> hwDBFactory = new DBManagerFactory<>(DBSessionFactory.getSessionFactory());
+		
+		List<HWId2Barcode> HWList = hwDBFactory.listElement(); 
 		for (HWId2Barcode hw : HWList) {
 			HWMapping entry = new HWMapping();
 			entry.barcodeId = hw.getBarcode();
@@ -62,11 +66,13 @@ public class Server implements Runnable {
 			
 			System.out.println("load from DB: (" + hw.getHwId()+", " + hw.getBarcode() +", " + entry.chargeId + ")");
 		}
+		
+		recordFactory = new DBManagerFactory<ChargeRecord, String>(DBSessionFactory.getSessionFactory());
 	}
 	
 	private boolean loadConfig()  {
-		String cfgFile = System.getenv(systemVariable);
-		//String cfgFile = "/Users/chencius/config/config.xml";
+		//String cfgFile = System.getenv(systemVariable);
+		String cfgFile = "/Users/chencius/config/config.xml";
 		//String cfgFile = "/home/chargeserver/config/EMoto.cfg";
 
 		if (cfgFile == null) {
